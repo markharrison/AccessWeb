@@ -495,6 +495,14 @@ class AccessibilityManager {
         // Start the recognition with better error handling
         this.startVoiceRecognition();
         this.announce('Voice navigation started - stays active until you click Stop Voice', 'polite');
+        
+        // Show voice help if Settings is visible
+        setTimeout(() => {
+            const settingsVisible = document.getElementById('voice-commands-help');
+            if (settingsVisible) {
+                this.showSettingsVoiceHelp();
+            }
+        }, 1000);
     }
 
     stopVoiceNavigation(button) {
@@ -513,6 +521,9 @@ class AccessibilityManager {
         } catch (e) {
             // Ignore errors from stopping
         }
+        
+        // Hide voice help
+        this.hideSettingsVoiceHelp();
         
         this.announce('Voice navigation stopped', 'polite');
     }
@@ -601,6 +612,10 @@ class AccessibilityManager {
                         altSettingsBtn.click();
                     }
                 }
+                // Show voice help after settings opens
+                setTimeout(() => {
+                    this.showSettingsVoiceHelp();
+                }, 500);
                 break;
                 
             case 'help':
@@ -663,7 +678,9 @@ class AccessibilityManager {
 
     announceVoiceCommands() {
         const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
-        const isSettingsOpen = document.querySelector('#settingsModal.show') !== null;
+        const isSettingsOpen = document.querySelector('#settingsModal.show') !== null || 
+                              document.querySelector('#settingsModal[style*="display: block"]') !== null ||
+                              document.querySelector('#voice-commands-help');
         
         if (isSettingsOpen) {
             const settingsCommands = [
@@ -673,6 +690,8 @@ class AccessibilityManager {
             if (this.settings.audioFeedback) {
                 setTimeout(() => this.speak(settingsCommands[0]), 100);
             }
+            // Show visual help in Settings
+            this.showSettingsVoiceHelp();
         } else {
             const commandList = [
                 'Voice commands: Dashboard, Create Complaint, Track Complaints, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
@@ -681,6 +700,53 @@ class AccessibilityManager {
             if (this.settings.audioFeedback) {
                 setTimeout(() => this.speak(commandList[0]), 100);
             }
+        }
+    }
+
+    showSettingsVoiceHelp() {
+        const helpSection = document.getElementById('voice-commands-help');
+        if (helpSection && this.isVoiceNavigationActive) {
+            helpSection.style.display = 'block';
+            helpSection.setAttribute('aria-live', 'polite');
+            helpSection.innerHTML = `
+                <h6 class="alert-heading">🎙️ Voice Commands Available (Voice Navigation Active)</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Text Size:</strong><br>
+                        • "Normal Text"<br>
+                        • "Large Text"<br>
+                        • "Extra Large Text"
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Themes:</strong><br>
+                        • "Normal Theme"<br>
+                        • "Dark Theme"<br>
+                        • "High Contrast"
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Audio:</strong><br>
+                        • "Enable Audio"<br>
+                        • "Disable Audio"
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Actions:</strong><br>
+                        • "Save Settings"<br>
+                        • "Close Settings"
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">💡 Just speak these commands naturally - no button clicks needed!</small>
+                </div>
+            `;
+        }
+    }
+
+    hideSettingsVoiceHelp() {
+        const helpSection = document.getElementById('voice-commands-help');
+        if (helpSection) {
+            helpSection.style.display = 'none';
         }
     }
 
@@ -702,6 +768,8 @@ class AccessibilityManager {
                     if (backdrop) backdrop.remove();
                 }
                 this.announce('Settings closed', 'polite');
+                this.showTemporaryFeedback('✓ Settings closed');
+                this.hideSettingsVoiceHelp();
             } catch (error) {
                 console.warn('Error closing settings modal:', error);
             }
@@ -713,6 +781,7 @@ class AccessibilityManager {
         if (saveButton) {
             saveButton.click();
             this.announce('Settings saved', 'polite');
+            this.showTemporaryFeedback('✓ Settings saved successfully');
         }
     }
 
@@ -722,6 +791,7 @@ class AccessibilityManager {
             fontSizeSelect.value = size;
             this.settings.fontSize = size;
             this.announce(`Text size set to ${size}`, 'polite');
+            this.showTemporaryFeedback(`✓ Text size changed to ${size}`);
         }
     }
 
@@ -731,6 +801,7 @@ class AccessibilityManager {
             themeSelect.value = theme;
             this.settings.theme = theme;
             this.announce(`Theme set to ${theme.replace('-', ' ')}`, 'polite');
+            this.showTemporaryFeedback(`✓ Theme changed to ${theme.replace('-', ' ')}`);
         }
     }
 
@@ -740,6 +811,7 @@ class AccessibilityManager {
             audioCheckbox.checked = enabled;
             this.settings.audioFeedback = enabled;
             this.announce(`Audio feedback ${enabled ? 'enabled' : 'disabled'}`, 'polite');
+            this.showTemporaryFeedback(`✓ Audio feedback ${enabled ? 'enabled' : 'disabled'}`);
         }
     }
 
@@ -754,7 +826,30 @@ class AccessibilityManager {
             }
             const langName = lang === 'cy' ? 'Welsh' : 'English';
             this.announce(`Language set to ${langName}`, 'polite');
+            this.showTemporaryFeedback(`✓ Language changed to ${langName}`);
         }
+    }
+
+    showTemporaryFeedback(message) {
+        // Create or update a temporary feedback element
+        let feedbackEl = document.getElementById('voice-feedback');
+        if (!feedbackEl) {
+            feedbackEl = document.createElement('div');
+            feedbackEl.id = 'voice-feedback';
+            feedbackEl.className = 'alert alert-success position-fixed';
+            feedbackEl.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+            document.body.appendChild(feedbackEl);
+        }
+        
+        feedbackEl.innerHTML = `<strong>${message}</strong>`;
+        feedbackEl.style.display = 'block';
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            if (feedbackEl && feedbackEl.parentElement) {
+                feedbackEl.style.display = 'none';
+            }
+        }, 3000);
     }
 
     speak(text) {
