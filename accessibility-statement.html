@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Statement - AccessAssist</title>
+    <meta name="description" content="Accessibility Statement for AccessAssist - Our commitment to digital accessibility and inclusive design.">
+    
+    <!-- Bootstrap CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <!-- Skip to main content link for screen readers -->
+    <a href="#main-content" class="skip-to-content sr-only sr-only-focusable">Skip to main content</a>
+    
+    <!-- Header -->
+    <header role="banner" class="bg-primary text-white py-3">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h3 mb-0">AccessAssist</h1>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <a href="index.html" class="btn btn-outline-light btn-sm">
+                        <span aria-hidden="true">🏠</span> Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main content -->
+    <main id="main-content" role="main" class="container mt-4">
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <h2 class="mb-4">Accessibility Statement</h2>
+                
+                <section aria-labelledby="commitment-heading" class="mb-5">
+                    <h3 id="commitment-heading">Our Commitment to Accessibility</h3>
+                    <p>AccessAssist is committed to ensuring digital accessibility for people with disabilities. We are continually improving the user experience for everyone and applying the relevant accessibility standards.</p>
+                </section>
+
+                <section aria-labelledby="standards-heading" class="mb-5">
+                    <h3 id="standards-heading">Conformance Standards</h3>
+                    <p>This website aims to conform to the following accessibility standards:</p>
+                    <ul>
+                        <li><strong>WCAG 2.1 Level AA:</strong> Web Content Accessibility Guidelines 2.1 at Level AA</li>
+                        <li><strong>Section 508:</strong> US Federal accessibility requirements</li>
+                        <li><strong>EN 301 549:</strong> European accessibility standard</li>
+                        <li><strong>WAI-ARIA:</strong> Web Accessibility Initiative - Accessible Rich Internet Applications</li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="features-heading" class="mb-5">
+                    <h3 id="features-heading">Accessibility Features</h3>
+                    
+                    <h4 class="h5 mt-4">For Users with Visual Impairments</h4>
+                    <ul>
+                        <li>Voice input and output support using Web Speech API</li>
+                        <li>Screen reader compatibility with semantic HTML and ARIA attributes</li>
+                        <li>Keyboard navigation for all interactive elements</li>
+                        <li>High contrast themes and scalable text up to 250% (XX-Large option)</li>
+                        <li>Skip navigation links</li>
+                        <li>Alternative text for all meaningful images</li>
+                    </ul>
+
+                    <h4 class="h5 mt-4">For Users with Hearing Impairments</h4>
+                    <ul>
+                        <li>Visual alerts for all notifications and status changes</li>
+                        <li>Text alternatives for audio content</li>
+                        <li>No reliance on sound for critical information</li>
+                    </ul>
+
+                    <h4 class="h5 mt-4">For Users with Cognitive Disabilities</h4>
+                    <ul>
+                        <li>Plain language throughout (B1/B2 CEFR level)</li>
+                        <li>Clear progress indicators for multi-step processes</li>
+                        <li>Consistent navigation and layout</li>
+                        <li>Reduced motion options</li>
+                        <li>Auto-save functionality to prevent data loss</li>
+                    </ul>
+
+                    <h4 class="h5 mt-4">For Users with Motor Disabilities</h4>
+                    <ul>
+                        <li>Large touch targets (minimum 44x44 pixels)</li>
+                        <li>Voice input alternatives for text entry</li>
+                        <li>No time-limited interactions</li>
+                        <li>Keyboard-only navigation support</li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="testing-heading" class="mb-5">
+                    <h3 id="testing-heading">Testing and Validation</h3>
+                    <p>This website has been tested using:</p>
+                    <ul>
+                        <li><strong>Automated testing:</strong> axe-core accessibility engine via Playwright</li>
+                        <li><strong>Manual testing:</strong> Keyboard navigation, screen readers (NVDA, JAWS, VoiceOver)</li>
+                        <li><strong>User testing:</strong> Testing with users who have various disabilities</li>
+                        <li><strong>Color contrast:</strong> All text meets WCAG 2.1 AA contrast ratios (4.5:1)</li>
+                    </ul>
+                </section>
+
+                <section aria-labelledby="technical-heading" class="mb-5">
+                    <h3 id="technical-heading">Technical Specifications</h3>
+                    <dl class="row">
+                        <dt class="col-sm-3">Technologies:</dt>
+                        <dd class="col-sm-9">HTML5, CSS3, Vanilla JavaScript</dd>
+                        
+                        <dt class="col-sm-3">Assistive Technology:</dt>
+                        <dd class="col-sm-9">Compatible with screen readers, voice recognition software, and switch devices</dd>
+                        
+                        <dt class="col-sm-3">Browsers:</dt>
+                        <dd class="col-sm-9">Chrome 80+, Firefox 75+, Safari 13+, Edge 80+</dd>
+                        
+                        <dt class="col-sm-3">Mobile:</dt>
+                        <dd class="col-sm-9">iOS Safari, Chrome Mobile, Samsung Internet</dd>
+                    </dl>
+                </section>
+
+                <section aria-labelledby="feedback-heading" class="mb-5">
+                    <h3 id="feedback-heading">Feedback and Contact</h3>
+                    <p>We welcome your feedback on the accessibility of AccessAssist. Please let us know if you encounter accessibility barriers:</p>
+                    <ul>
+                        <li><strong>Email:</strong> accessibility@accessassist.co.uk</li>
+                        <li><strong>Phone:</strong> +44 (0) 123 456 7890</li>
+                        <li><strong>Post:</strong> AccessAssist Ltd, 123 Accessibility Street, London, UK, AB1 2CD</li>
+                    </ul>
+                    <p>We try to respond to feedback within 2 business days.</p>
+                </section>
+
+                <section aria-labelledby="compliance-heading" class="mb-5">
+                    <h3 id="compliance-heading">Compliance Status</h3>
+                    <p><strong>Fully conformant:</strong> This website is fully conformant with WCAG 2.1 Level AA. "Fully conformant" means that the content fully meets the accessibility standard without any exceptions.</p>
+                </section>
+
+                <section aria-labelledby="assessment-heading" class="mb-5">
+                    <h3 id="assessment-heading">Assessment Information</h3>
+                    <dl class="row">
+                        <dt class="col-sm-3">Assessment method:</dt>
+                        <dd class="col-sm-9">Self-evaluation with automated and manual testing</dd>
+                        
+                        <dt class="col-sm-3">Last reviewed:</dt>
+                        <dd class="col-sm-9">September 2024</dd>
+                        
+                        <dt class="col-sm-3">Assessed by:</dt>
+                        <dd class="col-sm-9">AccessAssist Development Team</dd>
+                    </dl>
+                </section>
+
+                <section aria-labelledby="updates-heading" class="mb-5">
+                    <h3 id="updates-heading">Date of this Statement</h3>
+                    <p>This accessibility statement was prepared on <strong>16 September 2024</strong>. It was last updated on <strong>16 September 2024</strong>.</p>
+                </section>
+
+                <div class="text-center mt-5">
+                    <a href="index.html" class="btn btn-primary btn-lg">
+                        <span aria-hidden="true">🏠</span> Return to Home
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer role="contentinfo" class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 AccessAssist. Designed for accessibility.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <nav aria-label="Footer navigation">
+                        <a href="#" class="text-decoration-none me-3">Help</a>
+                        <a href="#" class="text-decoration-none me-3">Privacy</a>
+                        <a href="accessibility-statement.html" class="text-decoration-none">Accessibility Statement</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="assets/js/accessibility.js"></script>
+    <script src="assets/js/main.js"></script>
+</body>
+</html>
