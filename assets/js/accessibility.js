@@ -367,7 +367,20 @@ class AccessibilityManager {
                 'track-complaints': ['track complaints', 'view complaints', 'my complaints'],
                 'admin': ['admin', 'administration', 'admin panel'],
                 'settings': ['settings', 'preferences', 'open settings', 'accessibility settings'],
-                'help': ['help', 'voice commands', 'what can I say']
+                'help': ['help', 'voice commands', 'what can I say'],
+                // Settings modal navigation commands
+                'close-settings': ['close settings', 'close', 'cancel settings', 'exit settings'],
+                'save-settings': ['save settings', 'save', 'save changes', 'apply'],
+                'text-size-normal': ['normal text', 'normal size', 'text normal'],
+                'text-size-large': ['large text', 'large size', 'text large', 'bigger text'],
+                'text-size-xlarge': ['extra large text', 'very large text', 'largest text'],
+                'theme-normal': ['normal theme', 'default theme', 'standard theme'],
+                'theme-dark': ['dark theme', 'dark mode'],
+                'theme-high-contrast': ['high contrast', 'contrast theme'],
+                'enable-audio': ['enable audio', 'turn on audio', 'audio on'],
+                'disable-audio': ['disable audio', 'turn off audio', 'audio off'],
+                'language-english': ['english', 'english language'],
+                'language-welsh': ['welsh', 'cymraeg', 'welsh language']
             },
             'cy': {
                 'dashboard': ['dangosfwrdd', 'cartref'],
@@ -375,7 +388,11 @@ class AccessibilityManager {
                 'track-complaints': ['tracio cwynion', 'fy nghwynion'],
                 'admin': ['gweinyddu', 'panel gweinyddu'],
                 'settings': ['gosodiadau', 'dewisiadau'],
-                'help': ['cymorth', 'gorchmynion llais']
+                'help': ['cymorth', 'gorchmynion llais'],
+                'close-settings': ['cau gosodiadau', 'cau'],
+                'save-settings': ['cadw gosodiadau', 'cadw'],
+                'language-english': ['saesneg'],
+                'language-welsh': ['cymraeg']
             }
         };
 
@@ -386,13 +403,7 @@ class AccessibilityManager {
             // Restart listening if voice navigation is still active
             if (this.isVoiceNavigationActive) {
                 setTimeout(() => {
-                    if (this.isVoiceNavigationActive) {
-                        try {
-                            this.navigationRecognition.start();
-                        } catch (e) {
-                            // Ignore errors from trying to restart
-                        }
-                    }
+                    this.startVoiceRecognition();
                 }, 100);
             }
         };
@@ -401,18 +412,19 @@ class AccessibilityManager {
             console.warn('Voice navigation error:', event.error);
             if (event.error === 'not-allowed') {
                 this.announce('Voice navigation permission denied. Please enable microphone access.', 'assertive');
-            } else if (event.error === 'no-speech') {
-                // Restart listening automatically if no speech detected
+            } else if (event.error === 'no-speech' || event.error === 'audio-capture') {
+                // Restart listening automatically for these recoverable errors
                 if (this.isVoiceNavigationActive) {
                     setTimeout(() => {
-                        if (this.isVoiceNavigationActive) {
-                            try {
-                                this.navigationRecognition.start();
-                            } catch (e) {
-                                // Ignore errors from trying to restart
-                            }
-                        }
+                        this.startVoiceRecognition();
                     }, 500);
+                }
+            } else if (event.error === 'network') {
+                // Network errors - wait a bit longer before retrying
+                if (this.isVoiceNavigationActive) {
+                    setTimeout(() => {
+                        this.startVoiceRecognition();
+                    }, 2000);
                 }
             }
         };
@@ -421,13 +433,7 @@ class AccessibilityManager {
             // Automatically restart if voice navigation is still active
             if (this.isVoiceNavigationActive) {
                 setTimeout(() => {
-                    if (this.isVoiceNavigationActive) {
-                        try {
-                            this.navigationRecognition.start();
-                        } catch (e) {
-                            // Ignore errors from trying to restart
-                        }
-                    }
+                    this.startVoiceRecognition();
                 }, 100);
             }
         };
@@ -485,8 +491,10 @@ class AccessibilityManager {
         button.setAttribute('aria-label', 'Stop voice navigation');
         
         this.isVoiceNavigationActive = true;
-        this.navigationRecognition.start();
-        this.announce('Voice navigation started', 'polite');
+        
+        // Start the recognition with better error handling
+        this.startVoiceRecognition();
+        this.announce('Voice navigation started - stays active until you click Stop Voice', 'polite');
     }
 
     stopVoiceNavigation(button) {
@@ -498,8 +506,28 @@ class AccessibilityManager {
         button.setAttribute('aria-label', 'Start voice navigation');
         
         this.isVoiceNavigationActive = false;
-        this.navigationRecognition.stop();
+        
+        // Stop the recognition
+        try {
+            this.navigationRecognition.stop();
+        } catch (e) {
+            // Ignore errors from stopping
+        }
+        
         this.announce('Voice navigation stopped', 'polite');
+    }
+
+    startVoiceRecognition() {
+        if (!this.isVoiceNavigationActive || !this.navigationRecognition) return;
+        
+        try {
+            this.navigationRecognition.start();
+        } catch (e) {
+            // If recognition is already running, ignore the error
+            if (e.name !== 'InvalidStateError') {
+                console.warn('Voice recognition start error:', e);
+            }
+        }
     }
 
     handleVoiceNavigationCommand(transcript) {
@@ -578,6 +606,55 @@ class AccessibilityManager {
             case 'help':
                 this.announceVoiceCommands();
                 break;
+
+            // Settings modal commands
+            case 'close-settings':
+                this.closeSettingsModal();
+                break;
+                
+            case 'save-settings':
+                this.saveSettingsFromVoice();
+                break;
+                
+            case 'text-size-normal':
+                this.setTextSize('normal');
+                break;
+                
+            case 'text-size-large':
+                this.setTextSize('large');
+                break;
+                
+            case 'text-size-xlarge':
+                this.setTextSize('x-large');
+                break;
+                
+            case 'theme-normal':
+                this.setTheme('normal');
+                break;
+                
+            case 'theme-dark':
+                this.setTheme('dark');
+                break;
+                
+            case 'theme-high-contrast':
+                this.setTheme('high-contrast');
+                break;
+                
+            case 'enable-audio':
+                this.setAudioFeedback(true);
+                break;
+                
+            case 'disable-audio':
+                this.setAudioFeedback(false);
+                break;
+                
+            case 'language-english':
+                this.setLanguage('en');
+                break;
+                
+            case 'language-welsh':
+                this.setLanguage('cy');
+                break;
                 
             default:
                 this.announce('Command not recognized', 'polite');
@@ -586,15 +663,97 @@ class AccessibilityManager {
 
     announceVoiceCommands() {
         const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
-        const commandList = [
-            'Voice commands: Dashboard, Create Complaint, Track Complaints, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
-        ];
+        const isSettingsOpen = document.querySelector('#settingsModal.show') !== null;
         
-        this.announce(commandList[0], 'polite');
-        
-        // Also speak the commands if audio feedback is enabled
-        if (this.settings.audioFeedback) {
-            setTimeout(() => this.speak(commandList[0]), 100);
+        if (isSettingsOpen) {
+            const settingsCommands = [
+                'Settings voice commands: Save Settings, Close Settings, Normal Text, Large Text, Dark Theme, High Contrast, Enable Audio, Disable Audio, English, Welsh.'
+            ];
+            this.announce(settingsCommands[0], 'polite');
+            if (this.settings.audioFeedback) {
+                setTimeout(() => this.speak(settingsCommands[0]), 100);
+            }
+        } else {
+            const commandList = [
+                'Voice commands: Dashboard, Create Complaint, Track Complaints, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
+            ];
+            this.announce(commandList[0], 'polite');
+            if (this.settings.audioFeedback) {
+                setTimeout(() => this.speak(commandList[0]), 100);
+            }
+        }
+    }
+
+    closeSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            try {
+                if (typeof bootstrap !== 'undefined') {
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                } else {
+                    // Fallback when Bootstrap JS is not available
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                }
+                this.announce('Settings closed', 'polite');
+            } catch (error) {
+                console.warn('Error closing settings modal:', error);
+            }
+        }
+    }
+
+    saveSettingsFromVoice() {
+        const saveButton = document.getElementById('save-settings');
+        if (saveButton) {
+            saveButton.click();
+            this.announce('Settings saved', 'polite');
+        }
+    }
+
+    setTextSize(size) {
+        const fontSizeSelect = document.getElementById('font-size');
+        if (fontSizeSelect) {
+            fontSizeSelect.value = size;
+            this.settings.fontSize = size;
+            this.announce(`Text size set to ${size}`, 'polite');
+        }
+    }
+
+    setTheme(theme) {
+        const themeSelect = document.getElementById('contrast-theme');
+        if (themeSelect) {
+            themeSelect.value = theme;
+            this.settings.theme = theme;
+            this.announce(`Theme set to ${theme.replace('-', ' ')}`, 'polite');
+        }
+    }
+
+    setAudioFeedback(enabled) {
+        const audioCheckbox = document.getElementById('audio-feedback');
+        if (audioCheckbox) {
+            audioCheckbox.checked = enabled;
+            this.settings.audioFeedback = enabled;
+            this.announce(`Audio feedback ${enabled ? 'enabled' : 'disabled'}`, 'polite');
+        }
+    }
+
+    setLanguage(lang) {
+        const languageSelect = document.getElementById('language');
+        if (languageSelect) {
+            languageSelect.value = lang;
+            this.settings.language = lang;
+            // Update voice recognition language
+            if (this.navigationRecognition) {
+                this.navigationRecognition.lang = lang === 'cy' ? 'cy-GB' : 'en-GB';
+            }
+            const langName = lang === 'cy' ? 'Welsh' : 'English';
+            this.announce(`Language set to ${langName}`, 'polite');
         }
     }
 
