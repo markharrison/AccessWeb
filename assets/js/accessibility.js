@@ -352,6 +352,12 @@ class AccessibilityManager {
         this.navigationRecognition.interimResults = false;
         this.navigationRecognition.lang = this.settings.language === 'cy' ? 'cy-GB' : 'en-GB';
         this.navigationRecognition.maxAlternatives = 1;
+        
+        // Set longer timeout for voice input - allow up to 10 seconds for user to speak
+        if ('webkitSpeechRecognition' in window) {
+            // For Chrome/Webkit browsers, we can set a longer speech timeout
+            this.navigationRecognition.serviceURI = null; // Use default service
+        }
 
         // Voice navigation commands
         this.voiceCommands = {
@@ -376,28 +382,66 @@ class AccessibilityManager {
         this.navigationRecognition.onresult = (event) => {
             const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
             this.handleVoiceNavigationCommand(transcript);
+            
+            // Restart listening if voice navigation is still active
+            if (this.isVoiceNavigationActive) {
+                setTimeout(() => {
+                    if (this.isVoiceNavigationActive) {
+                        try {
+                            this.navigationRecognition.start();
+                        } catch (e) {
+                            // Ignore errors from trying to restart
+                        }
+                    }
+                }, 100);
+            }
         };
 
         this.navigationRecognition.onerror = (event) => {
             console.warn('Voice navigation error:', event.error);
             if (event.error === 'not-allowed') {
                 this.announce('Voice navigation permission denied. Please enable microphone access.', 'assertive');
+            } else if (event.error === 'no-speech') {
+                // Restart listening automatically if no speech detected
+                if (this.isVoiceNavigationActive) {
+                    setTimeout(() => {
+                        if (this.isVoiceNavigationActive) {
+                            try {
+                                this.navigationRecognition.start();
+                            } catch (e) {
+                                // Ignore errors from trying to restart
+                            }
+                        }
+                    }, 500);
+                }
+            }
+        };
+
+        this.navigationRecognition.onend = () => {
+            // Automatically restart if voice navigation is still active
+            if (this.isVoiceNavigationActive) {
+                setTimeout(() => {
+                    if (this.isVoiceNavigationActive) {
+                        try {
+                            this.navigationRecognition.start();
+                        } catch (e) {
+                            // Ignore errors from trying to restart
+                        }
+                    }
+                }, 100);
             }
         };
     }
 
     addVoiceNavigationButton() {
-        // Add voice navigation toggle to the navbar
-        const navbar = document.querySelector('.navbar-nav');
-        if (!navbar) return;
+        // Add voice navigation button to the header (top left)
+        const headerContainer = document.querySelector('header .container .row .col-auto');
+        if (!headerContainer) return;
 
-        // Create voice navigation button in the navbar
-        const voiceNavItem = document.createElement('li');
-        voiceNavItem.className = 'nav-item';
-        
+        // Create voice navigation button in the header
         const voiceNavButton = document.createElement('button');
         voiceNavButton.type = 'button';
-        voiceNavButton.className = 'nav-link btn btn-link p-0';
+        voiceNavButton.className = 'btn btn-outline-light btn-sm';
         voiceNavButton.id = 'voice-nav-btn';
         voiceNavButton.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
         voiceNavButton.setAttribute('aria-label', 'Toggle voice navigation');
@@ -413,15 +457,7 @@ class AccessibilityManager {
             }
         });
 
-        voiceNavItem.appendChild(voiceNavButton);
-        
-        // Insert before the last item (Help button)
-        const helpItem = navbar.querySelector('#help-btn')?.parentElement;
-        if (helpItem) {
-            navbar.insertBefore(voiceNavItem, helpItem);
-        } else {
-            navbar.appendChild(voiceNavItem);
-        }
+        headerContainer.appendChild(voiceNavButton);
 
         // Add keyboard shortcut for voice navigation (Ctrl+Shift+V)
         document.addEventListener('keydown', (event) => {
@@ -443,7 +479,8 @@ class AccessibilityManager {
     startVoiceNavigation(button) {
         if (!this.navigationRecognition) return;
 
-        button.classList.add('text-danger');
+        button.classList.remove('btn-outline-light');
+        button.classList.add('btn-danger');
         button.innerHTML = '<span aria-hidden="true">⏹️</span> Stop Voice';
         button.setAttribute('aria-label', 'Stop voice navigation');
         
@@ -455,7 +492,8 @@ class AccessibilityManager {
     stopVoiceNavigation(button) {
         if (!this.navigationRecognition) return;
 
-        button.classList.remove('text-danger');
+        button.classList.remove('btn-danger');
+        button.classList.add('btn-outline-light');
         button.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
         button.setAttribute('aria-label', 'Start voice navigation');
         
