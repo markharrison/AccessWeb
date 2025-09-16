@@ -223,9 +223,23 @@ class AccessibilityManager {
                 this.applySettings();
 
                 // Close modal
-                const modalInstance = bootstrap.Modal.getInstance(modal);
-                if (modalInstance) {
-                    modalInstance.hide();
+                try {
+                    if (typeof bootstrap !== 'undefined') {
+                        const modalInstance = bootstrap.Modal.getInstance(modal);
+                        if (modalInstance) {
+                            modalInstance.hide();
+                        }
+                    } else {
+                        // Fallback when Bootstrap JS is not available
+                        modal.style.display = 'none';
+                        modal.classList.remove('show');
+                        document.body.classList.remove('modal-open');
+                        const backdrop = document.querySelector('.modal-backdrop');
+                        if (backdrop) backdrop.remove();
+                    }
+                } catch (error) {
+                    console.warn('Bootstrap modal not available, using fallback');
+                    modal.style.display = 'none';
                 }
             });
         }
