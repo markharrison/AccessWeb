@@ -359,6 +359,13 @@ class AccessibilityManager {
             this.navigationRecognition.serviceURI = null; // Use default service
         }
 
+        // Add debouncing and loop prevention
+        this.lastTranscript = '';
+        this.lastCommandTime = 0;
+        this.recognitionRetryCount = 0;
+        this.maxRetryAttempts = 10; // Limit continuous retries
+        this.recognitionActive = false;
+
         // Voice navigation commands
         this.voiceCommands = {
             'en': {
@@ -398,29 +405,75 @@ class AccessibilityManager {
 
         this.navigationRecognition.onresult = (event) => {
             const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            const currentTime = Date.now();
+            
+            // Prevent duplicate/looping commands
+            if (transcript === this.lastTranscript && (currentTime - this.lastCommandTime) < 2000) {
+                console.log('Ignoring duplicate command:', transcript);
+                this.restartRecognitionWithDelay();
+                return;
+            }
+            
+            // Ignore very short or empty transcripts
+            if (transcript.length < 2) {
+                console.log('Ignoring short transcript:', transcript);
+                this.restartRecognitionWithDelay();
+                return;
+            }
+            
+            // Process the command
+            this.lastTranscript = transcript;
+            this.lastCommandTime = currentTime;
+            this.recognitionRetryCount = 0; // Reset retry count on successful recognition
+            
+            console.log('Processing voice command:', transcript);
             this.handleVoiceNavigationCommand(transcript);
             
-            // Restart listening if voice navigation is still active
-            if (this.isVoiceNavigationActive) {
-                setTimeout(() => {
-                    this.startVoiceRecognition();
-                }, 100);
-            }
+            // Restart listening with a brief delay to prevent loops
+            this.restartRecognitionWithDelay();
         };
 
         this.navigationRecognition.onerror = (event) => {
             console.warn('Voice navigation error:', event.error);
+            this.recognitionActive = false;
+            
             if (event.error === 'not-allowed') {
                 this.announce('Voice navigation permission denied. Please enable microphone access.', 'assertive');
-            } else if (event.error === 'no-speech' || event.error === 'audio-capture') {
-                // Restart listening automatically for these recoverable errors
+                // Stop trying completely on permission errors
+                this.isVoiceNavigationActive = false;
+                // Reset the button state
+                const voiceButton = document.getElementById('voice-nav-btn');
+                if (voiceButton) {
+                    this.stopVoiceNavigation(voiceButton);
+                }
+                return; // Don't retry on permission errors
+            } 
+            
+            // Limit retry attempts to prevent infinite loops
+            if (this.recognitionRetryCount >= this.maxRetryAttempts) {
+                console.warn('Maximum retry attempts reached. Pausing voice recognition.');
+                this.announce('Voice recognition paused. Click the voice navigation button to restart.', 'polite');
+                return;
+            }
+            
+            this.recognitionRetryCount++;
+            
+            if (event.error === 'no-speech' || event.error === 'audio-capture') {
+                // Wait longer on no-speech to give user time
                 if (this.isVoiceNavigationActive) {
                     setTimeout(() => {
                         this.startVoiceRecognition();
-                    }, 500);
+                    }, 3000); // Increased delay
                 }
             } else if (event.error === 'network') {
-                // Network errors - wait a bit longer before retrying
+                // Network errors - wait even longer before retrying
+                if (this.isVoiceNavigationActive) {
+                    setTimeout(() => {
+                        this.startVoiceRecognition();
+                    }, 5000);
+                }
+            } else {
+                // Other errors - moderate delay
                 if (this.isVoiceNavigationActive) {
                     setTimeout(() => {
                         this.startVoiceRecognition();
@@ -430,11 +483,11 @@ class AccessibilityManager {
         };
 
         this.navigationRecognition.onend = () => {
-            // Automatically restart if voice navigation is still active
-            if (this.isVoiceNavigationActive) {
-                setTimeout(() => {
-                    this.startVoiceRecognition();
-                }, 100);
+            this.recognitionActive = false;
+            
+            // Only restart if voice navigation is still active and we haven't hit retry limit
+            if (this.isVoiceNavigationActive && this.recognitionRetryCount < this.maxRetryAttempts) {
+                this.restartRecognitionWithDelay();
             }
         };
     }
@@ -492,6 +545,11 @@ class AccessibilityManager {
         
         this.isVoiceNavigationActive = true;
         
+        // Reset loop prevention counters
+        this.recognitionRetryCount = 0;
+        this.lastTranscript = '';
+        this.lastCommandTime = 0;
+        
         // Start the recognition with better error handling
         this.startVoiceRecognition();
         this.announce('Voice navigation started - stays active until you click Stop Voice', 'polite');
@@ -514,6 +572,12 @@ class AccessibilityManager {
         button.setAttribute('aria-label', 'Start voice navigation');
         
         this.isVoiceNavigationActive = false;
+        this.recognitionActive = false;
+        
+        // Reset counters
+        this.recognitionRetryCount = 0;
+        this.lastTranscript = '';
+        this.lastCommandTime = 0;
         
         // Stop the recognition
         try {
@@ -529,16 +593,31 @@ class AccessibilityManager {
     }
 
     startVoiceRecognition() {
-        if (!this.isVoiceNavigationActive || !this.navigationRecognition) return;
+        if (!this.isVoiceNavigationActive || !this.navigationRecognition || this.recognitionActive) return;
         
         try {
+            this.recognitionActive = true;
             this.navigationRecognition.start();
         } catch (e) {
             // If recognition is already running, ignore the error
+            this.recognitionActive = false;
             if (e.name !== 'InvalidStateError') {
                 console.warn('Voice recognition start error:', e);
             }
         }
+    }
+
+    restartRecognitionWithDelay() {
+        if (!this.isVoiceNavigationActive) return;
+        
+        // Use progressive delay based on retry count to prevent loops
+        const delay = Math.min(1000 + (this.recognitionRetryCount * 500), 5000);
+        
+        setTimeout(() => {
+            if (this.isVoiceNavigationActive && !this.recognitionActive) {
+                this.startVoiceRecognition();
+            }
+        }, delay);
     }
 
     handleVoiceNavigationCommand(transcript) {
