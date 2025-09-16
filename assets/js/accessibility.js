@@ -57,7 +57,7 @@ class AccessibilityManager {
     }
 
     applySettings() {
-        const { fontSize, theme, reducedMotion } = this.settings;
+        const { fontSize, theme, reducedMotion, language, languageLevel } = this.settings;
         
         // Apply font size
         document.documentElement.setAttribute('data-font-size', fontSize);
@@ -65,11 +65,27 @@ class AccessibilityManager {
         // Apply theme
         document.documentElement.setAttribute('data-theme', theme);
         
+        // Apply language
+        document.documentElement.setAttribute('lang', language);
+        document.documentElement.setAttribute('data-language', language);
+        
+        // Apply language level
+        document.documentElement.setAttribute('data-language-level', languageLevel);
+        
         // Apply reduced motion
         if (reducedMotion) {
             document.documentElement.style.setProperty('--animation-duration', '0.01ms');
             document.documentElement.style.setProperty('--transition-duration', '0.01ms');
+        } else {
+            document.documentElement.style.removeProperty('--animation-duration');
+            document.documentElement.style.removeProperty('--transition-duration');
         }
+
+        // Apply language-specific content
+        this.applyLanguageContent();
+        
+        // Apply complexity level content
+        this.applyComplexityLevel();
 
         // Update form controls
         this.updateSettingsForm();
@@ -89,6 +105,100 @@ class AccessibilityManager {
                 }
             }
         });
+    }
+
+    applyLanguageContent() {
+        const language = this.settings.language;
+        
+        if (language === 'cy') {
+            // Welsh translations for key UI elements
+            const translations = {
+                'AccessAssist': 'CymorthCyrraedd',
+                'Make Your Voice Heard': 'Gwnewch i\'ch Llais Gael ei Glywed',
+                'Dashboard': 'Dangosfwrdd',
+                'Create Complaint': 'Creu Cwyn',
+                'Track Complaints': 'Tracio Cwynion', 
+                'Admin': 'Gweinyddu',
+                'Start New Complaint': 'Dechrau Cwyn Newydd',
+                'Track Progress': 'Tracio Cynnydd',
+                'Accessibility First': 'Hygyrchedd yn Gyntaf',
+                'Settings': 'Gosodiadau',
+                'Recent Complaints': 'Cwynion Diweddar',
+                'No complaints yet.': 'Dim cwynion eto.',
+                'Create your first complaint': 'Creu eich cwyn gyntaf',
+                'to get started.': 'i ddechrau.',
+                'Accessibility Settings': 'Gosodiadau Hygyrchedd',
+                'Save Settings': 'Cadw Gosodiadau',
+                'Cancel': 'Canslo'
+            };
+
+            // Apply basic translations
+            this.applyTranslations(translations);
+        }
+    }
+
+    applyTranslations(translations) {
+        Object.keys(translations).forEach(englishText => {
+            const welshText = translations[englishText];
+            
+            // Update headings and buttons
+            const elements = document.querySelectorAll('h1, h2, h3, .nav-link, button, .card-title');
+            elements.forEach(element => {
+                if (element.textContent.trim() === englishText) {
+                    element.textContent = welshText;
+                }
+            });
+        });
+        
+        // Update page title
+        if (document.title.includes('AccessAssist')) {
+            document.title = document.title.replace('AccessAssist', 'CymorthCyrraedd');
+        }
+    }
+
+    applyComplexityLevel() {
+        const level = this.settings.languageLevel;
+        
+        // Define text complexity alternatives
+        const complexityTexts = {
+            'simple': {
+                'AccessAssist helps you create professional complaint letters with AI assistance. Designed for everyone - voice input, real-time UK sign language recognition with hand tracking, screen reader support, and plain language guidance.': 
+                'AccessAssist helps you write complaints easily. Works for everyone with voice input and screen reader support.',
+                
+                'Guided process with voice input and clear prompts': 
+                'Easy steps with voice help',
+                
+                'Monitor deadlines and get escalation guidance': 
+                'Check deadlines and get help',
+                
+                'Voice, text, real-time UK sign language recognition, high contrast, and screen reader support': 
+                'Voice input, high contrast, and screen reader help'
+            },
+            'advanced': {
+                'AccessAssist helps you create professional complaint letters with AI assistance. Designed for everyone - voice input, real-time UK sign language recognition with hand tracking, screen reader support, and plain language guidance.':
+                'AccessAssist facilitates the composition of professional complaint correspondence through artificial intelligence assistance. Engineered with comprehensive accessibility considerations including voice input modalities, real-time UK sign language recognition with hand tracking technology, screen reader compatibility, and plain language guidance.',
+                
+                'Guided process with voice input and clear prompts':
+                'Comprehensive guided methodology incorporating voice input capabilities and explicit user prompts',
+                
+                'Monitor deadlines and get escalation guidance':
+                'Monitor temporal deadlines and receive escalation guidance protocols'
+            }
+        };
+
+        // Apply complexity level text
+        if (complexityTexts[level]) {
+            Object.keys(complexityTexts[level]).forEach(originalText => {
+                const newText = complexityTexts[level][originalText];
+                
+                const elements = document.querySelectorAll('p, .card-text');
+                elements.forEach(element => {
+                    if (element.textContent.trim() === originalText) {
+                        element.textContent = newText;
+                    }
+                });
+            });
+        }
     }
 
     setupSettingsModal() {
@@ -144,8 +254,8 @@ class AccessibilityManager {
     }
 
     addVoiceInputButtons() {
-        // Add voice input buttons to text inputs and textareas
-        const inputs = document.querySelectorAll('input[type="text"], textarea');
+        // Add voice input buttons to text inputs, email inputs and textareas
+        const inputs = document.querySelectorAll('input[type="text"], input[type="email"], input[type="tel"], input[type="search"], textarea');
         
         inputs.forEach(input => {
             if (input.dataset.voiceAdded) return;
