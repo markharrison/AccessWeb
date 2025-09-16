@@ -463,6 +463,28 @@ textarea:focus,
     animation: pulse 1s infinite;
 }
 
+/* Navigation button styles */
+.navbar-nav .btn-link {
+    border: none;
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.65);
+    transition: color 0.15s ease-in-out;
+}
+
+.navbar-nav .btn-link:hover {
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.navbar-nav .btn-link:focus {
+    outline: var(--focus-outline) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+}
+
+.navbar-nav .btn-link.text-danger {
+    color: #dc3545 !important;
+}
+
 /* Voice navigation button styles */
 #voice-nav-btn {
     position: relative;

@@ -348,9 +348,10 @@ class AccessibilityManager {
         const NavigationRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         this.navigationRecognition = new NavigationRecognition();
         
-        this.navigationRecognition.continuous = true;
+        this.navigationRecognition.continuous = false;
         this.navigationRecognition.interimResults = false;
         this.navigationRecognition.lang = this.settings.language === 'cy' ? 'cy-GB' : 'en-GB';
+        this.navigationRecognition.maxAlternatives = 1;
 
         // Voice navigation commands
         this.voiceCommands = {
@@ -386,67 +387,81 @@ class AccessibilityManager {
     }
 
     addVoiceNavigationButton() {
-        // Add a dedicated voice navigation button to the header
-        const header = document.querySelector('header .container .row');
-        if (!header) return;
+        // Add voice navigation toggle to the navbar
+        const navbar = document.querySelector('.navbar-nav');
+        if (!navbar) return;
 
-        const voiceNavCol = document.createElement('div');
-        voiceNavCol.className = 'col-auto';
+        // Create voice navigation button in the navbar
+        const voiceNavItem = document.createElement('li');
+        voiceNavItem.className = 'nav-item';
         
         const voiceNavButton = document.createElement('button');
         voiceNavButton.type = 'button';
-        voiceNavButton.className = 'btn btn-outline-light btn-sm';
+        voiceNavButton.className = 'nav-link btn btn-link p-0';
         voiceNavButton.id = 'voice-nav-btn';
         voiceNavButton.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
-        voiceNavButton.setAttribute('aria-label', 'Start voice navigation');
-        voiceNavButton.setAttribute('title', 'Click to start voice navigation. Say commands like "Dashboard", "Settings", or "Help"');
+        voiceNavButton.setAttribute('aria-label', 'Toggle voice navigation');
+        voiceNavButton.setAttribute('title', 'Click to start voice navigation');
 
-        let isListening = false;
+        this.isVoiceNavigationActive = false;
 
         voiceNavButton.addEventListener('click', () => {
-            if (!isListening) {
+            if (!this.isVoiceNavigationActive) {
                 this.startVoiceNavigation(voiceNavButton);
             } else {
                 this.stopVoiceNavigation(voiceNavButton);
             }
-            isListening = !isListening;
         });
 
-        voiceNavCol.appendChild(voiceNavButton);
-        header.appendChild(voiceNavCol);
+        voiceNavItem.appendChild(voiceNavButton);
+        
+        // Insert before the last item (Help button)
+        const helpItem = navbar.querySelector('#help-btn')?.parentElement;
+        if (helpItem) {
+            navbar.insertBefore(voiceNavItem, helpItem);
+        } else {
+            navbar.appendChild(voiceNavItem);
+        }
 
         // Add keyboard shortcut for voice navigation (Ctrl+Shift+V)
         document.addEventListener('keydown', (event) => {
             if (event.ctrlKey && event.shiftKey && event.key === 'V') {
                 event.preventDefault();
                 voiceNavButton.click();
-                this.announce('Voice navigation activated. Say "Help" for available commands.', 'polite');
             }
         });
+
+        // Setup help button functionality
+        const helpButton = document.getElementById('help-btn');
+        if (helpButton) {
+            helpButton.addEventListener('click', () => {
+                this.announceVoiceCommands();
+            });
+        }
     }
 
     startVoiceNavigation(button) {
         if (!this.navigationRecognition) return;
 
-        button.classList.add('btn-danger');
-        button.classList.remove('btn-outline-light');
-        button.innerHTML = '<span aria-hidden="true">⏹️</span> Stop Voice Navigation';
+        button.classList.add('text-danger');
+        button.innerHTML = '<span aria-hidden="true">⏹️</span> Stop Voice';
         button.setAttribute('aria-label', 'Stop voice navigation');
-
+        
+        this.isVoiceNavigationActive = true;
         this.navigationRecognition.start();
-        this.announce('Voice navigation started. Say "Dashboard", "Settings", or "Help" for commands.', 'polite');
+        this.announce('Voice navigation started', 'polite');
     }
 
     stopVoiceNavigation(button) {
         if (!this.navigationRecognition) return;
 
-        button.classList.remove('btn-danger');
-        button.classList.add('btn-outline-light');
+        button.classList.remove('text-danger');
         button.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
         button.setAttribute('aria-label', 'Start voice navigation');
-
+        
+        this.isVoiceNavigationActive = false;
         this.navigationRecognition.stop();
-        this.announce('Voice navigation stopped.', 'polite');
+        this.announce('Voice navigation stopped', 'polite');
     }
 
     handleVoiceNavigationCommand(transcript) {
@@ -494,27 +509,22 @@ class AccessibilityManager {
     executeVoiceNavigationAction(action, originalTranscript) {
         switch (action) {
             case 'dashboard':
-                this.announce('Navigating to Dashboard', 'polite');
-                setTimeout(() => window.location.href = 'index.html', 500);
+                window.location.href = 'index.html';
                 break;
                 
             case 'create-complaint':
-                this.announce('Navigating to Create Complaint', 'polite');
-                setTimeout(() => window.location.href = 'create-complaint.html', 500);
+                window.location.href = 'create-complaint.html';
                 break;
                 
             case 'track-complaints':
-                this.announce('Navigating to Track Complaints', 'polite');
-                setTimeout(() => window.location.href = 'track-complaints.html', 500);
+                window.location.href = 'track-complaints.html';
                 break;
                 
             case 'admin':
-                this.announce('Navigating to Admin', 'polite');
-                setTimeout(() => window.location.href = 'admin.html', 500);
+                window.location.href = 'admin.html';
                 break;
                 
             case 'settings':
-                this.announce('Opening Settings', 'polite');
                 const settingsBtn = document.getElementById('settings-btn');
                 if (settingsBtn) {
                     settingsBtn.click();
@@ -539,20 +549,14 @@ class AccessibilityManager {
     announceVoiceCommands() {
         const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
         const commandList = [
-            'Available voice commands:',
-            `"${commands.dashboard[0]}" - Go to dashboard`,
-            `"${commands['create-complaint'][0]}" - Create new complaint`,
-            `"${commands['track-complaints'][0]}" - View your complaints`,
-            `"${commands.admin[0]}" - Admin panel`,
-            `"${commands.settings[0]}" - Open accessibility settings`,
-            'Press Ctrl+Shift+V to activate voice navigation'
+            'Voice commands: Dashboard, Create Complaint, Track Complaints, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
         ];
         
-        this.announce(commandList.join('. '), 'polite');
+        this.announce(commandList[0], 'polite');
         
         // Also speak the commands if audio feedback is enabled
         if (this.settings.audioFeedback) {
-            setTimeout(() => this.speak(commandList.join('. ')), 100);
+            setTimeout(() => this.speak(commandList[0]), 100);
         }
     }
 
