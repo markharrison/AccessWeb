@@ -264,6 +264,8 @@ class AccessibilityManager {
 
             this.voiceEnabled = true;
             this.addVoiceInputButtons();
+            this.setupVoiceNavigationCommands();
+            this.addVoiceNavigationButton();
         }
     }
 
@@ -339,6 +341,221 @@ class AccessibilityManager {
         this.speechRecognition.start();
     }
 
+    setupVoiceNavigationCommands() {
+        // Create a separate speech recognition instance for navigation
+        if (!this.voiceEnabled) return;
+
+        const NavigationRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.navigationRecognition = new NavigationRecognition();
+        
+        this.navigationRecognition.continuous = true;
+        this.navigationRecognition.interimResults = false;
+        this.navigationRecognition.lang = this.settings.language === 'cy' ? 'cy-GB' : 'en-GB';
+
+        // Voice navigation commands
+        this.voiceCommands = {
+            'en': {
+                'dashboard': ['dashboard', 'go to dashboard', 'home'],
+                'create-complaint': ['create complaint', 'new complaint', 'write complaint'],
+                'track-complaints': ['track complaints', 'view complaints', 'my complaints'],
+                'admin': ['admin', 'administration', 'admin panel'],
+                'settings': ['settings', 'preferences', 'open settings', 'accessibility settings'],
+                'help': ['help', 'voice commands', 'what can I say']
+            },
+            'cy': {
+                'dashboard': ['dangosfwrdd', 'cartref'],
+                'create-complaint': ['creu cwyn', 'cwyn newydd'],
+                'track-complaints': ['tracio cwynion', 'fy nghwynion'],
+                'admin': ['gweinyddu', 'panel gweinyddu'],
+                'settings': ['gosodiadau', 'dewisiadau'],
+                'help': ['cymorth', 'gorchmynion llais']
+            }
+        };
+
+        this.navigationRecognition.onresult = (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            this.handleVoiceNavigationCommand(transcript);
+        };
+
+        this.navigationRecognition.onerror = (event) => {
+            console.warn('Voice navigation error:', event.error);
+            if (event.error === 'not-allowed') {
+                this.announce('Voice navigation permission denied. Please enable microphone access.', 'assertive');
+            }
+        };
+    }
+
+    addVoiceNavigationButton() {
+        // Add a dedicated voice navigation button to the header
+        const header = document.querySelector('header .container .row');
+        if (!header) return;
+
+        const voiceNavCol = document.createElement('div');
+        voiceNavCol.className = 'col-auto';
+        
+        const voiceNavButton = document.createElement('button');
+        voiceNavButton.type = 'button';
+        voiceNavButton.className = 'btn btn-outline-light btn-sm';
+        voiceNavButton.id = 'voice-nav-btn';
+        voiceNavButton.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
+        voiceNavButton.setAttribute('aria-label', 'Start voice navigation');
+        voiceNavButton.setAttribute('title', 'Click to start voice navigation. Say commands like "Dashboard", "Settings", or "Help"');
+
+        let isListening = false;
+
+        voiceNavButton.addEventListener('click', () => {
+            if (!isListening) {
+                this.startVoiceNavigation(voiceNavButton);
+            } else {
+                this.stopVoiceNavigation(voiceNavButton);
+            }
+            isListening = !isListening;
+        });
+
+        voiceNavCol.appendChild(voiceNavButton);
+        header.appendChild(voiceNavCol);
+
+        // Add keyboard shortcut for voice navigation (Ctrl+Shift+V)
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey && event.shiftKey && event.key === 'V') {
+                event.preventDefault();
+                voiceNavButton.click();
+                this.announce('Voice navigation activated. Say "Help" for available commands.', 'polite');
+            }
+        });
+    }
+
+    startVoiceNavigation(button) {
+        if (!this.navigationRecognition) return;
+
+        button.classList.add('btn-danger');
+        button.classList.remove('btn-outline-light');
+        button.innerHTML = '<span aria-hidden="true">⏹️</span> Stop Voice Navigation';
+        button.setAttribute('aria-label', 'Stop voice navigation');
+
+        this.navigationRecognition.start();
+        this.announce('Voice navigation started. Say "Dashboard", "Settings", or "Help" for commands.', 'polite');
+    }
+
+    stopVoiceNavigation(button) {
+        if (!this.navigationRecognition) return;
+
+        button.classList.remove('btn-danger');
+        button.classList.add('btn-outline-light');
+        button.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
+        button.setAttribute('aria-label', 'Start voice navigation');
+
+        this.navigationRecognition.stop();
+        this.announce('Voice navigation stopped.', 'polite');
+    }
+
+    handleVoiceNavigationCommand(transcript) {
+        const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
+        
+        // Find matching command
+        let matchedAction = null;
+        
+        for (const [action, variations] of Object.entries(commands)) {
+            for (const variation of variations) {
+                if (transcript.includes(variation)) {
+                    matchedAction = action;
+                    break;
+                }
+            }
+            if (matchedAction) break;
+        }
+
+        if (matchedAction) {
+            this.executeVoiceNavigationAction(matchedAction, transcript);
+        } else {
+            // Try partial matches for better UX
+            const partialMatches = this.findPartialMatches(transcript, commands);
+            if (partialMatches.length > 0) {
+                this.announce(`Did you mean: ${partialMatches.join(', ')}?`, 'polite');
+            } else {
+                this.announce('Command not recognized. Say "Help" for available commands.', 'polite');
+            }
+        }
+    }
+
+    findPartialMatches(transcript, commands) {
+        const matches = [];
+        for (const [action, variations] of Object.entries(commands)) {
+            for (const variation of variations) {
+                if (variation.includes(transcript) || transcript.includes(variation.split(' ')[0])) {
+                    matches.push(variation);
+                    break;
+                }
+            }
+        }
+        return matches.slice(0, 3); // Limit to 3 suggestions
+    }
+
+    executeVoiceNavigationAction(action, originalTranscript) {
+        switch (action) {
+            case 'dashboard':
+                this.announce('Navigating to Dashboard', 'polite');
+                setTimeout(() => window.location.href = 'index.html', 500);
+                break;
+                
+            case 'create-complaint':
+                this.announce('Navigating to Create Complaint', 'polite');
+                setTimeout(() => window.location.href = 'create-complaint.html', 500);
+                break;
+                
+            case 'track-complaints':
+                this.announce('Navigating to Track Complaints', 'polite');
+                setTimeout(() => window.location.href = 'track-complaints.html', 500);
+                break;
+                
+            case 'admin':
+                this.announce('Navigating to Admin', 'polite');
+                setTimeout(() => window.location.href = 'admin.html', 500);
+                break;
+                
+            case 'settings':
+                this.announce('Opening Settings', 'polite');
+                const settingsBtn = document.getElementById('settings-btn');
+                if (settingsBtn) {
+                    settingsBtn.click();
+                } else {
+                    // Fallback for settings button in accessibility card
+                    const altSettingsBtn = document.querySelector('button[data-bs-target="#settingsModal"]');
+                    if (altSettingsBtn) {
+                        altSettingsBtn.click();
+                    }
+                }
+                break;
+                
+            case 'help':
+                this.announceVoiceCommands();
+                break;
+                
+            default:
+                this.announce('Command not recognized', 'polite');
+        }
+    }
+
+    announceVoiceCommands() {
+        const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
+        const commandList = [
+            'Available voice commands:',
+            `"${commands.dashboard[0]}" - Go to dashboard`,
+            `"${commands['create-complaint'][0]}" - Create new complaint`,
+            `"${commands['track-complaints'][0]}" - View your complaints`,
+            `"${commands.admin[0]}" - Admin panel`,
+            `"${commands.settings[0]}" - Open accessibility settings`,
+            'Press Ctrl+Shift+V to activate voice navigation'
+        ];
+        
+        this.announce(commandList.join('. '), 'polite');
+        
+        // Also speak the commands if audio feedback is enabled
+        if (this.settings.audioFeedback) {
+            setTimeout(() => this.speak(commandList.join('. ')), 100);
+        }
+    }
+
     speak(text) {
         if (!this.settings.audioFeedback || !this.speechSynthesis) return;
 
@@ -396,6 +613,12 @@ class AccessibilityManager {
                 if (settingsBtn) {
                     settingsBtn.click();
                 }
+            }
+
+            // Voice navigation help with Alt+H
+            if (event.altKey && event.key === 'h') {
+                event.preventDefault();
+                this.announceVoiceCommands();
             }
 
             // Escape key handling for modals

@@ -106,17 +106,62 @@ test.describe('AccessAssist Accessibility Tests', () => {
     await expect(progressBar).toHaveAttribute('aria-valuenow', '2');
   });
 
-  test('Voice input buttons are accessible', async ({ page }) => {
+  test('Voice navigation button is present and functional', async ({ page }) => {
+    await page.goto('http://localhost:8000/');
+    
+    // Check that voice navigation button is present
+    const voiceNavButton = page.getByRole('button', { name: 'Start voice navigation' });
+    await expect(voiceNavButton).toBeVisible();
+    await expect(voiceNavButton).toHaveAttribute('aria-label', 'Start voice navigation');
+    await expect(voiceNavButton).toHaveAttribute('title', /Click to start voice navigation/);
+    
+    // Test clicking the button changes state
+    await voiceNavButton.click();
+    
+    // Button should change to stop state
+    const stopButton = page.getByRole('button', { name: 'Stop voice navigation' });
+    await expect(stopButton).toBeVisible();
+    await expect(stopButton).toHaveAttribute('aria-label', 'Stop voice navigation');
+  });
+
+  test('Voice navigation keyboard shortcut works', async ({ page }) => {
+    await page.goto('http://localhost:8000/');
+    
+    // Test Ctrl+Shift+V shortcut
+    await page.keyboard.press('Control+Shift+V');
+    
+    // Should activate voice navigation
+    const stopButton = page.getByRole('button', { name: 'Stop voice navigation' });
+    await expect(stopButton).toBeVisible();
+  });
+
+  test('Voice navigation button appears on all pages', async ({ page }) => {
+    const pages = ['/', '/create-complaint.html', '/track-complaints.html', '/admin.html'];
+    
+    for (const pagePath of pages) {
+      await page.goto(`http://localhost:8000${pagePath}`);
+      
+      const voiceNavButton = page.locator('#voice-nav-btn');
+      await expect(voiceNavButton).toBeVisible();
+      await expect(voiceNavButton).toContainText('Voice Navigation');
+    }
+  });
+
+  test('Voice input buttons are added to form fields', async ({ page }) => {
     await page.goto('http://localhost:8000/create-complaint.html');
     
-    // Check that voice buttons have proper labels
+    // Check for voice input buttons on text inputs
     const voiceButtons = page.locator('.voice-btn');
     const count = await voiceButtons.count();
     
+    // Should have voice buttons for all text inputs and textareas
+    expect(count).toBeGreaterThan(5); // Multiple form fields have voice input
+    
+    // Check each button has proper attributes
     for (let i = 0; i < count; i++) {
       const button = voiceButtons.nth(i);
-      await expect(button).toHaveAttribute('aria-label', /Start voice input/);
-      await expect(button).toHaveAttribute('title', /Click to use voice input/);
+      await expect(button).toHaveAttribute('aria-label', 'Start voice input');
+      await expect(button).toHaveAttribute('title', 'Click to use voice input');
     }
   });
 
