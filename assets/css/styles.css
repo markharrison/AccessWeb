@@ -533,6 +533,132 @@ textarea:focus,
     margin-bottom: var(--spacing-md);
 }
 
+/* Modal styling for better contrast */
+.modal-content {
+    color: #212529 !important;
+}
+
+.modal-content dt {
+    color: #212529 !important;
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+
+.modal-content dd {
+    color: #212529 !important;
+    margin-bottom: 0.75rem;
+}
+
+.modal-content p {
+    color: #212529 !important;
+}
+
+.modal-content h4,
+.modal-content h5,
+.modal-content h6,
+.modal-content .h4,
+.modal-content .h5,
+.modal-content .h6 {
+    color: #212529 !important;
+}
+
+.modal-content a {
+    color: #0d6efd !important;
+    text-decoration: underline;
+}
+
+.modal-content a:hover {
+    color: #0a58ca !important;
+}
+
+.modal-content .text-muted {
+    color: #6c757d !important;
+}
+
+.modal-content .timeline-item {
+    border-left: 3px solid #dee2e6;
+    padding-left: 1rem;
+    margin-bottom: 1rem;
+}
+
+.modal-content .timeline-item div {
+    color: #212529 !important;
+}
+
+/* High contrast theme modal overrides */
+[data-theme="high-contrast"] .modal-content {
+    background-color: #ffffff !important;
+    border: 3px solid #000000 !important;
+}
+
+[data-theme="high-contrast"] .modal-content,
+[data-theme="high-contrast"] .modal-content dt,
+[data-theme="high-contrast"] .modal-content dd,
+[data-theme="high-contrast"] .modal-content p,
+[data-theme="high-contrast"] .modal-content h4,
+[data-theme="high-contrast"] .modal-content h5,
+[data-theme="high-contrast"] .modal-content h6,
+[data-theme="high-contrast"] .modal-content .h4,
+[data-theme="high-contrast"] .modal-content .h5,
+[data-theme="high-contrast"] .modal-content .h6 {
+    color: #000000 !important;
+}
+
+[data-theme="high-contrast"] .modal-content a {
+    color: #0000FF !important;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+[data-theme="high-contrast"] .modal-content .text-muted {
+    color: #333333 !important;
+}
+
+[data-theme="high-contrast"] .modal-content .timeline-item {
+    border-left: 3px solid #000000;
+}
+
+[data-theme="high-contrast"] .modal-content .timeline-item div {
+    color: #000000 !important;
+}
+
+[data-theme="high-contrast"] .modal-header {
+    border-bottom: 2px solid #000000 !important;
+}
+
+[data-theme="high-contrast"] .modal-footer {
+    border-top: 2px solid #000000 !important;
+}
+
+/* Dark theme modal overrides */
+[data-theme="dark"] .modal-content dt,
+[data-theme="dark"] .modal-content dd,
+[data-theme="dark"] .modal-content p,
+[data-theme="dark"] .modal-content h4,
+[data-theme="dark"] .modal-content h5,
+[data-theme="dark"] .modal-content h6,
+[data-theme="dark"] .modal-content .h4,
+[data-theme="dark"] .modal-content .h5,
+[data-theme="dark"] .modal-content .h6 {
+    color: #f8f9fa !important;
+}
+
+[data-theme="dark"] .modal-content a {
+    color: #66d9ef !important;
+}
+
+[data-theme="dark"] .modal-content .text-muted {
+    color: #adb5bd !important;
+}
+
+[data-theme="dark"] .modal-content .timeline-item {
+    border-left: 3px solid #495057;
+}
+
+[data-theme="dark"] .modal-content .timeline-item div {
+    color: #f8f9fa !important;
+}
+
 /* High contrast mode specific styles */
 @media (prefers-contrast: high) {
     .card {
@@ -547,6 +673,16 @@ textarea:focus,
     .btn-outline-secondary,
     .btn-outline-info {
         border-width: 2px;
+    }
+    
+    .modal-content {
+        border: 3px solid var(--dark-color) !important;
+    }
+    
+    .modal-content dt,
+    .modal-content dd,
+    .modal-content p {
+        color: var(--dark-color) !important;
     }
 }
 
