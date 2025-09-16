@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create New Complaint - AccessAssist</title>
+    <meta name="description" content="Create a new complaint with AccessAssist. Guided process with voice input and clear prompts for accessibility.">
+    
+    <!-- Bootstrap CSS from CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    
+    <!-- Prefers reduced motion support -->
+    <style>
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Skip to main content link for screen readers -->
+    <a href="#main-content" class="skip-to-content sr-only sr-only-focusable">Skip to main content</a>
+    
+    <!-- Accessibility announcement region -->
+    <div id="announcements" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+    
+    <!-- Header -->
+    <header role="banner" class="bg-primary text-white py-3">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="h3 mb-0">AccessAssist</h1>
+                </div>
+                <div class="col-md-4 text-md-end">
+                    <button type="button" class="btn btn-outline-light btn-sm" id="settings-btn" aria-label="Open accessibility settings" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                        <span aria-hidden="true">⚙️</span> Settings
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main navigation -->
+    <nav role="navigation" aria-label="Main navigation" class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="create-complaint.html">Create Complaint</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="track-complaints.html">Track Complaints</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">Admin</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <main id="main-content" role="main" class="container mt-4">
+        <!-- Page header -->
+        <section aria-labelledby="page-heading" class="mb-4">
+            <h2 id="page-heading" class="h4 mb-2">Create New Complaint</h2>
+            <p class="text-muted">Follow these simple steps to create your complaint. You can use voice input by clicking the microphone buttons.</p>
+        </section>
+
+        <!-- Progress indicator -->
+        <section aria-labelledby="progress-heading" class="mb-4">
+            <h3 id="progress-heading" class="sr-only">Progress</h3>
+            <div class="progress-indicator" role="progressbar" aria-valuenow="1" aria-valuemin="1" aria-valuemax="4" aria-label="Step 1 of 4">
+                <div class="progress-step current" aria-label="Step 1: Organization selection">
+                    <div class="step-circle">1</div>
+                    <div class="step-label">Organization</div>
+                </div>
+                <div class="progress-step" aria-label="Step 2: Contact details">
+                    <div class="step-circle">2</div>
+                    <div class="step-label">Your Details</div>
+                </div>
+                <div class="progress-step" aria-label="Step 3: Complaint details">
+                    <div class="step-circle">3</div>
+                    <div class="step-label">Complaint</div>
+                </div>
+                <div class="progress-step" aria-label="Step 4: Review and submit">
+                    <div class="step-circle">4</div>
+                    <div class="step-label">Review</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Multi-step form -->
+        <form id="complaint-form" novalidate>
+            <!-- Step 1: Organization Selection -->
+            <fieldset id="step-1" class="step-content">
+                <legend class="h5 mb-3">Step 1: Select Organization</legend>
+                <p class="mb-4">Choose the organization you want to complain about.</p>
+                
+                <div class="mb-3">
+                    <label for="organization" class="form-label">Organization <span class="text-danger" aria-label="required">*</span></label>
+                    <select class="form-select" id="organization" required aria-describedby="organization-help">
+                        <option value="">Choose an organization...</option>
+                    </select>
+                    <div id="organization-help" class="form-text">Select the company or service provider you need to complain about.</div>
+                    <div class="invalid-feedback" role="alert"></div>
+                </div>
+
+                <div id="organization-details" class="alert alert-info d-none" role="region" aria-labelledby="org-details-heading">
+                    <h4 id="org-details-heading" class="alert-heading h6">Organization Details</h4>
+                    <div id="org-details-content"></div>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="index.html" class="btn btn-secondary">Cancel</a>
+                    <button type="button" class="btn btn-primary" id="next-to-step-2">
+                        Next: Your Details
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </fieldset>
+
+            <!-- Step 2: Personal Details -->
+            <fieldset id="step-2" class="step-content d-none">
+                <legend class="h5 mb-3">Step 2: Your Contact Details</legend>
+                <p class="mb-4">Provide your contact information so the organization can respond to your complaint.</p>
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="full-name" class="form-label">Full Name <span class="text-danger" aria-label="required">*</span></label>
+                        <input type="text" class="form-control" id="full-name" required aria-describedby="full-name-help">
+                        <div id="full-name-help" class="form-text">Enter your first and last name.</div>
+                        <div class="invalid-feedback" role="alert"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="email" class="form-label">Email Address <span class="text-danger" aria-label="required">*</span></label>
+                        <input type="email" class="form-control" id="email" required aria-describedby="email-help">
+                        <div id="email-help" class="form-text">We'll send updates to this email address.</div>
+                        <div class="invalid-feedback" role="alert"></div>
+                    </div>
+                </div>
+
+                <div class="row g-3 mt-3">
+                    <div class="col-md-6">
+                        <label for="phone" class="form-label">Phone Number</label>
+                        <input type="tel" class="form-control" id="phone" aria-describedby="phone-help">
+                        <div id="phone-help" class="form-text">Optional: In case they need to call you.</div>
+                        <div class="invalid-feedback" role="alert"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="preferred-contact" class="form-label">Preferred Contact Method</label>
+                        <select class="form-select" id="preferred-contact" aria-describedby="preferred-contact-help">
+                            <option value="email">Email</option>
+                            <option value="phone">Phone</option>
+                            <option value="letter">Letter</option>
+                        </select>
+                        <div id="preferred-contact-help" class="form-text">How would you like them to contact you?</div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label for="address" class="form-label">Address</label>
+                    <textarea class="form-control" id="address" rows="3" aria-describedby="address-help"></textarea>
+                    <div id="address-help" class="form-text">Optional: Provide your address if needed for the complaint.</div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary" id="back-to-step-1">
+                        <span aria-hidden="true">←</span> Back
+                    </button>
+                    <button type="button" class="btn btn-primary" id="next-to-step-3">
+                        Next: Complaint Details
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </fieldset>
+
+            <!-- Step 3: Complaint Details -->
+            <fieldset id="step-3" class="step-content d-none">
+                <legend class="h5 mb-3">Step 3: Complaint Details</legend>
+                <p class="mb-4">Describe your complaint clearly and provide any relevant details.</p>
+                
+                <div class="mb-3">
+                    <label for="complaint-title" class="form-label">Complaint Title <span class="text-danger" aria-label="required">*</span></label>
+                    <input type="text" class="form-control" id="complaint-title" required aria-describedby="complaint-title-help" maxlength="100">
+                    <div id="complaint-title-help" class="form-text">Brief summary of your complaint (max 100 characters).</div>
+                    <div class="invalid-feedback" role="alert"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="complaint-description" class="form-label">Detailed Description <span class="text-danger" aria-label="required">*</span></label>
+                    <textarea class="form-control" id="complaint-description" rows="6" required aria-describedby="complaint-description-help"></textarea>
+                    <div id="complaint-description-help" class="form-text">Explain what happened, when it occurred, and what you would like them to do about it. Use simple, clear language.</div>
+                    <div class="invalid-feedback" role="alert"></div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="incident-date" class="form-label">When did this happen?</label>
+                        <input type="date" class="form-control" id="incident-date" aria-describedby="incident-date-help">
+                        <div id="incident-date-help" class="form-text">Optional: Date of the incident or problem.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="reference-number" class="form-label">Reference Number</label>
+                        <input type="text" class="form-control" id="reference-number" aria-describedby="reference-number-help">
+                        <div id="reference-number-help" class="form-text">Optional: Order number, invoice number, or other reference.</div>
+                    </div>
+                </div>
+
+                <div class="mt-3">
+                    <label for="desired-outcome" class="form-label">What would you like them to do? <span class="text-danger" aria-label="required">*</span></label>
+                    <textarea class="form-control" id="desired-outcome" rows="3" required aria-describedby="desired-outcome-help"></textarea>
+                    <div id="desired-outcome-help" class="form-text">Clearly state what you want as a resolution (refund, replacement, apology, etc.).</div>
+                    <div class="invalid-feedback" role="alert"></div>
+                </div>
+
+                <div class="mt-3">
+                    <label for="previous-contact" class="form-label">Previous Contact Attempts</label>
+                    <textarea class="form-control" id="previous-contact" rows="3" aria-describedby="previous-contact-help"></textarea>
+                    <div id="previous-contact-help" class="form-text">Optional: Describe any previous attempts to resolve this issue.</div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary" id="back-to-step-2">
+                        <span aria-hidden="true">←</span> Back
+                    </button>
+                    <button type="button" class="btn btn-primary" id="next-to-step-4">
+                        Next: Review
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </div>
+            </fieldset>
+
+            <!-- Step 4: Review and Submit -->
+            <fieldset id="step-4" class="step-content d-none">
+                <legend class="h5 mb-3">Step 4: Review Your Complaint</legend>
+                <p class="mb-4">Please review your complaint details before submitting.</p>
+                
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title h6 mb-0">Complaint Summary</h4>
+                    </div>
+                    <div class="card-body">
+                        <div id="review-content" role="region" aria-labelledby="review-heading">
+                            <!-- Review content will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="confirm-accuracy" required>
+                        <label class="form-check-label" for="confirm-accuracy">
+                            I confirm that the information provided is accurate and complete <span class="text-danger" aria-label="required">*</span>
+                        </label>
+                        <div class="invalid-feedback" role="alert">You must confirm the accuracy of your information.</div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-secondary" id="back-to-step-3">
+                        <span aria-hidden="true">←</span> Back
+                    </button>
+                    <button type="submit" class="btn btn-success btn-lg" id="submit-complaint">
+                        <span aria-hidden="true">✓</span> Submit Complaint
+                    </button>
+                </div>
+            </fieldset>
+        </form>
+    </main>
+
+    <!-- Settings Modal (same as index.html) -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title h5" id="settingsModalLabel">Accessibility Settings</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="accessibility-settings">
+                        <fieldset class="mb-4">
+                            <legend class="h6">Visual Settings</legend>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="font-size" class="form-label">Text Size</label>
+                                    <select class="form-select" id="font-size" aria-describedby="font-size-help">
+                                        <option value="normal">Normal</option>
+                                        <option value="large">Large</option>
+                                        <option value="x-large">Extra Large</option>
+                                    </select>
+                                    <div id="font-size-help" class="form-text">Adjust text size for better readability</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="contrast-theme" class="form-label">Color Theme</label>
+                                    <select class="form-select" id="contrast-theme" aria-describedby="contrast-help">
+                                        <option value="normal">Normal</option>
+                                        <option value="high-contrast">High Contrast</option>
+                                        <option value="dark">Dark Mode</option>
+                                    </select>
+                                    <div id="contrast-help" class="form-text">Choose a theme that works best for you</div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="mb-4">
+                            <legend class="h6">Motion Settings</legend>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="reduced-motion" aria-describedby="motion-help">
+                                <label class="form-check-label" for="reduced-motion">
+                                    Reduce animations and motion
+                                </label>
+                                <div id="motion-help" class="form-text">Disable animations that might cause discomfort</div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset class="mb-4">
+                            <legend class="h6">Audio Settings</legend>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="audio-feedback" aria-describedby="audio-help">
+                                <label class="form-check-label" for="audio-feedback">
+                                    Enable audio feedback
+                                </label>
+                                <div id="audio-help" class="form-text">Hear confirmations and status updates</div>
+                            </div>
+                        </fieldset>
+
+                        <fieldset>
+                            <legend class="h6">Language Settings</legend>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="language" class="form-label">Language</label>
+                                    <select class="form-select" id="language">
+                                        <option value="en">English</option>
+                                        <option value="cy">Cymraeg (Welsh)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="language-level" class="form-label">Language Level</label>
+                                    <select class="form-select" id="language-level" aria-describedby="language-level-help">
+                                        <option value="simple">Simple (B1)</option>
+                                        <option value="standard">Standard (B2)</option>
+                                        <option value="advanced">Advanced (C1)</option>
+                                    </select>
+                                    <div id="language-level-help" class="form-text">Choose complexity level for instructions</div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-settings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer role="contentinfo" class="bg-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-0">&copy; 2024 AccessAssist. Designed for accessibility.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <nav aria-label="Footer navigation">
+                        <a href="#" class="text-decoration-none me-3">Help</a>
+                        <a href="#" class="text-decoration-none me-3">Privacy</a>
+                        <a href="#" class="text-decoration-none">Accessibility Statement</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    
+    <!-- Custom JavaScript -->
+    <script src="assets/js/accessibility.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/create-complaint.js"></script>
+</body>
+</html>
