@@ -371,7 +371,7 @@ class AccessibilityManager {
             'en': {
                 'dashboard': ['dashboard', 'go to dashboard', 'home'],
                 'create-complaint': ['create complaint', 'new complaint', 'write complaint'],
-                'track-complaints': ['track complaints', 'view complaints', 'my complaints'],
+                'track-complaints': ['track complaints', 'view complaints', 'my complaints', 'view tracker', 'tracker', 'check tracker', 'open tracker'],
                 'admin': ['admin', 'administration', 'admin panel'],
                 'settings': ['settings', 'preferences', 'open settings', 'accessibility settings'],
                 'help': ['help', 'voice commands', 'what can I say'],
@@ -392,7 +392,7 @@ class AccessibilityManager {
             'cy': {
                 'dashboard': ['dangosfwrdd', 'cartref'],
                 'create-complaint': ['creu cwyn', 'cwyn newydd'],
-                'track-complaints': ['tracio cwynion', 'fy nghwynion'],
+                'track-complaints': ['tracio cwynion', 'fy nghwynion', 'gwylio traciwr', 'traciwr'],
                 'admin': ['gweinyddu', 'panel gweinyddu'],
                 'settings': ['gosodiadau', 'dewisiadau'],
                 'help': ['cymorth', 'gorchmynion llais'],
@@ -773,7 +773,7 @@ class AccessibilityManager {
             this.showSettingsVoiceHelp();
         } else {
             const commandList = [
-                'Voice commands: Dashboard, Create Complaint, Track Complaints, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
+                'Voice commands: Dashboard, Create Complaint, Track Complaints or View Tracker, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
             ];
             this.announce(commandList[0], 'polite');
             if (this.settings.audioFeedback) {
