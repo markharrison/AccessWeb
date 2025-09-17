@@ -34,7 +34,8 @@ class AccessibilityManager {
             reducedMotion: false,
             audioFeedback: false,
             language: 'en',
-            languageLevel: 'simple'
+            languageLevel: 'simple',
+            voiceNavigationActive: false  // Add voice navigation state
         };
 
         try {
@@ -441,6 +442,9 @@ class AccessibilityManager {
                 this.announce('Voice navigation permission denied. Please enable microphone access.', 'assertive');
                 // Stop trying completely on permission errors
                 this.isVoiceNavigationActive = false;
+                // Persist the stopped state
+                this.settings.voiceNavigationActive = false;
+                this.saveSettings();
                 // Reset the button state
                 const voiceButton = document.getElementById('voice-nav-btn');
                 if (voiceButton) {
@@ -516,6 +520,14 @@ class AccessibilityManager {
             }
         });
 
+        // Restore voice navigation state from localStorage
+        if (this.settings.voiceNavigationActive) {
+            // Delay restoration to ensure page is fully loaded
+            setTimeout(() => {
+                this.startVoiceNavigation(voiceNavButton);
+            }, 1000);
+        }
+
         headerContainer.appendChild(voiceNavButton);
 
         // Add keyboard shortcut for voice navigation (Ctrl+Shift+V)
@@ -545,6 +557,10 @@ class AccessibilityManager {
         
         this.isVoiceNavigationActive = true;
         
+        // Persist voice navigation state
+        this.settings.voiceNavigationActive = true;
+        this.saveSettings();
+        
         // Reset loop prevention counters
         this.recognitionRetryCount = 0;
         this.lastTranscript = '';
@@ -573,6 +589,10 @@ class AccessibilityManager {
         
         this.isVoiceNavigationActive = false;
         this.recognitionActive = false;
+        
+        // Persist voice navigation state (off)
+        this.settings.voiceNavigationActive = false;
+        this.saveSettings();
         
         // Reset counters
         this.recognitionRetryCount = 0;
