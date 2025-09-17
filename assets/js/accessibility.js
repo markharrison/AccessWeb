@@ -50,10 +50,10 @@ class AccessibilityManager {
     saveSettings() {
         try {
             localStorage.setItem('accessibility-settings', JSON.stringify(this.settings));
-            this.announce('Settings saved successfully');
+            // Silent operation - no announcements
         } catch (error) {
             console.error('Error saving accessibility settings:', error);
-            this.announce('Error saving settings. Please try again.');
+            // Silent operation - no announcements
         }
     }
 
@@ -307,7 +307,8 @@ class AccessibilityManager {
 
     startVoiceInput(targetInput) {
         if (!this.speechRecognition) {
-            this.announce('Voice input not supported in this browser');
+            // Silent operation - no announcements
+            console.warn('Voice input not supported in this browser');
             return;
         }
 
@@ -318,18 +319,19 @@ class AccessibilityManager {
             voiceButton.innerHTML = '<span aria-hidden="true">⏹️</span>';
             voiceButton.setAttribute('aria-label', 'Stop voice input');
             targetInput.classList.add('voice-indicator', 'listening');
-            this.announce('Voice input started. Please speak now.');
+            // Silent operation - no announcements
         };
 
         this.speechRecognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             targetInput.value = transcript;
             targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-            this.announce(`Voice input completed: ${transcript}`);
+            // Silent operation - no announcements
         };
 
         this.speechRecognition.onerror = (event) => {
-            this.announce(`Voice input error: ${event.error}`);
+            // Silent operation - no announcements
+            console.warn(`Voice input error: ${event.error}`);
         };
 
         this.speechRecognition.onend = () => {
@@ -439,7 +441,8 @@ class AccessibilityManager {
             this.recognitionActive = false;
             
             if (event.error === 'not-allowed') {
-                this.announce('Voice navigation permission denied. Please enable microphone access.', 'assertive');
+                // Silent operation - no announcements
+                console.warn('Voice navigation permission denied');
                 // Stop trying completely on permission errors
                 this.isVoiceNavigationActive = false;
                 // Persist the stopped state
@@ -456,7 +459,7 @@ class AccessibilityManager {
             // Limit retry attempts to prevent infinite loops
             if (this.recognitionRetryCount >= this.maxRetryAttempts) {
                 console.warn('Maximum retry attempts reached. Pausing voice recognition.');
-                this.announce('Voice recognition paused. Click the voice navigation button to restart.', 'polite');
+                // Silent operation - no announcements
                 return;
             }
             
@@ -659,12 +662,14 @@ class AccessibilityManager {
         if (matchedAction) {
             this.executeVoiceNavigationAction(matchedAction, transcript);
         } else {
-            // Try partial matches for better UX
+            // Try partial matches for better UX - but stay silent
             const partialMatches = this.findPartialMatches(transcript, commands);
             if (partialMatches.length > 0) {
-                this.announce(`Did you mean: ${partialMatches.join(', ')}?`, 'polite');
+                // Silent operation - no announcements
+                console.log(`Partial matches found: ${partialMatches.join(', ')}`);
             } else {
-                this.announce('Command not recognized. Say "Help" for available commands.', 'polite');
+                // Silent operation - no announcements
+                console.log('Command not recognized');
             }
         }
     }
@@ -771,35 +776,15 @@ class AccessibilityManager {
                 break;
                 
             default:
-                this.announce('Command not recognized', 'polite');
+                // Silent operation - no announcements
+                console.log('Command not recognized');
         }
     }
 
     announceVoiceCommands() {
-        const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
-        const isSettingsOpen = document.querySelector('#settingsModal.show') !== null || 
-                              document.querySelector('#settingsModal[style*="display: block"]') !== null ||
-                              document.querySelector('#voice-commands-help');
-        
-        if (isSettingsOpen) {
-            const settingsCommands = [
-                'Settings voice commands: Save Settings, Close Settings, Normal Text, Large Text, Dark Theme, High Contrast, Enable Audio, Disable Audio, English, Welsh.'
-            ];
-            this.announce(settingsCommands[0], 'polite');
-            if (this.settings.audioFeedback) {
-                setTimeout(() => this.speak(settingsCommands[0]), 100);
-            }
-            // Show visual help in Settings
-            this.showSettingsVoiceHelp();
-        } else {
-            const commandList = [
-                'Voice commands: Dashboard, Create Complaint, Track Complaints or View Tracker, Admin, Settings, Help. Press Ctrl+Shift+V to toggle voice navigation.'
-            ];
-            this.announce(commandList[0], 'polite');
-            if (this.settings.audioFeedback) {
-                setTimeout(() => this.speak(commandList[0]), 100);
-            }
-        }
+        // Silent operation - no announcements
+        // Navigate to help page instead
+        window.location.href = 'help.html';
     }
 
     showSettingsVoiceHelp() {
@@ -866,7 +851,7 @@ class AccessibilityManager {
                     const backdrop = document.querySelector('.modal-backdrop');
                     if (backdrop) backdrop.remove();
                 }
-                this.announce('Settings closed', 'polite');
+                // Silent operation - no announcements
                 this.showTemporaryFeedback('✓ Settings closed');
                 this.hideSettingsVoiceHelp();
             } catch (error) {
@@ -879,7 +864,7 @@ class AccessibilityManager {
         const saveButton = document.getElementById('save-settings');
         if (saveButton) {
             saveButton.click();
-            this.announce('Settings saved', 'polite');
+            // Silent operation - no announcements
             this.showTemporaryFeedback('✓ Settings saved successfully');
         }
     }
@@ -889,7 +874,7 @@ class AccessibilityManager {
         if (fontSizeSelect) {
             fontSizeSelect.value = size;
             this.settings.fontSize = size;
-            this.announce(`Text size set to ${size}`, 'polite');
+            // Silent operation - no announcements
             this.showTemporaryFeedback(`✓ Text size changed to ${size}`);
         }
     }
@@ -899,7 +884,7 @@ class AccessibilityManager {
         if (themeSelect) {
             themeSelect.value = theme;
             this.settings.theme = theme;
-            this.announce(`Theme set to ${theme.replace('-', ' ')}`, 'polite');
+            // Silent operation - no announcements
             this.showTemporaryFeedback(`✓ Theme changed to ${theme.replace('-', ' ')}`);
         }
     }
@@ -909,7 +894,7 @@ class AccessibilityManager {
         if (audioCheckbox) {
             audioCheckbox.checked = enabled;
             this.settings.audioFeedback = enabled;
-            this.announce(`Audio feedback ${enabled ? 'enabled' : 'disabled'}`, 'polite');
+            // Silent operation - no announcements
             this.showTemporaryFeedback(`✓ Audio feedback ${enabled ? 'enabled' : 'disabled'}`);
         }
     }
@@ -924,7 +909,7 @@ class AccessibilityManager {
                 this.navigationRecognition.lang = lang === 'cy' ? 'cy-GB' : 'en-GB';
             }
             const langName = lang === 'cy' ? 'Welsh' : 'English';
-            this.announce(`Language set to ${langName}`, 'polite');
+            // Silent operation - no announcements
             this.showTemporaryFeedback(`✓ Language changed to ${langName}`);
         }
     }
