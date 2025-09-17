@@ -568,7 +568,7 @@ class AccessibilityManager {
         
         // Start the recognition with better error handling
         this.startVoiceRecognition();
-        this.announce('Voice navigation started - stays active until you click Stop Voice', 'polite');
+        // Remove verbose announcements - just start silently
         
         // Show voice help if Settings is visible
         setTimeout(() => {
@@ -609,7 +609,7 @@ class AccessibilityManager {
         // Hide voice help
         this.hideSettingsVoiceHelp();
         
-        this.announce('Voice navigation stopped', 'polite');
+        // Remove verbose announcements - just stop silently
     }
 
     startVoiceRecognition() {
@@ -718,7 +718,7 @@ class AccessibilityManager {
                 break;
                 
             case 'help':
-                this.announceVoiceCommands();
+                window.location.href = 'help.html';
                 break;
 
             // Settings modal commands
