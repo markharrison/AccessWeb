@@ -34,7 +34,8 @@ class AccessibilityManager {
             reducedMotion: false,
             audioFeedback: false,
             language: 'en',
-            languageLevel: 'simple'
+            languageLevel: 'simple',
+            voiceNavigationActive: false  // Add voice navigation state
         };
 
         try {
@@ -49,10 +50,10 @@ class AccessibilityManager {
     saveSettings() {
         try {
             localStorage.setItem('accessibility-settings', JSON.stringify(this.settings));
-            this.announce('Settings saved successfully');
+            // Silent operation - no announcements
         } catch (error) {
             console.error('Error saving accessibility settings:', error);
-            this.announce('Error saving settings. Please try again.');
+            // Silent operation - no announcements
         }
     }
 
@@ -264,6 +265,8 @@ class AccessibilityManager {
 
             this.voiceEnabled = true;
             this.addVoiceInputButtons();
+            this.setupVoiceNavigationCommands();
+            this.addVoiceNavigationButton();
         }
     }
 
@@ -304,7 +307,8 @@ class AccessibilityManager {
 
     startVoiceInput(targetInput) {
         if (!this.speechRecognition) {
-            this.announce('Voice input not supported in this browser');
+            // Silent operation - no announcements
+            console.warn('Voice input not supported in this browser');
             return;
         }
 
@@ -315,18 +319,19 @@ class AccessibilityManager {
             voiceButton.innerHTML = '<span aria-hidden="true">⏹️</span>';
             voiceButton.setAttribute('aria-label', 'Stop voice input');
             targetInput.classList.add('voice-indicator', 'listening');
-            this.announce('Voice input started. Please speak now.');
+            // Silent operation - no announcements
         };
 
         this.speechRecognition.onresult = (event) => {
             const transcript = event.results[0][0].transcript;
             targetInput.value = transcript;
             targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-            this.announce(`Voice input completed: ${transcript}`);
+            // Silent operation - no announcements
         };
 
         this.speechRecognition.onerror = (event) => {
-            this.announce(`Voice input error: ${event.error}`);
+            // Silent operation - no announcements
+            console.warn(`Voice input error: ${event.error}`);
         };
 
         this.speechRecognition.onend = () => {
@@ -337,6 +342,598 @@ class AccessibilityManager {
         };
 
         this.speechRecognition.start();
+    }
+
+    setupVoiceNavigationCommands() {
+        // Create a separate speech recognition instance for navigation
+        if (!this.voiceEnabled) return;
+
+        const NavigationRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        this.navigationRecognition = new NavigationRecognition();
+        
+        this.navigationRecognition.continuous = false;
+        this.navigationRecognition.interimResults = false;
+        this.navigationRecognition.lang = this.settings.language === 'cy' ? 'cy-GB' : 'en-GB';
+        this.navigationRecognition.maxAlternatives = 1;
+        
+        // Set longer timeout for voice input - allow up to 10 seconds for user to speak
+        if ('webkitSpeechRecognition' in window) {
+            // For Chrome/Webkit browsers, we can set a longer speech timeout
+            this.navigationRecognition.serviceURI = null; // Use default service
+        }
+
+        // Add debouncing and loop prevention
+        this.lastTranscript = '';
+        this.lastCommandTime = 0;
+        this.recognitionRetryCount = 0;
+        this.maxRetryAttempts = 10; // Limit continuous retries
+        this.recognitionActive = false;
+
+        // Voice navigation commands
+        this.voiceCommands = {
+            'en': {
+                'dashboard': ['dashboard', 'go to dashboard', 'home'],
+                'create-complaint': ['create complaint', 'new complaint', 'write complaint'],
+                'track-complaints': ['track complaints', 'view complaints', 'my complaints', 'view tracker', 'tracker', 'check tracker', 'open tracker'],
+                'admin': ['admin', 'administration', 'admin panel'],
+                'settings': ['settings', 'preferences', 'open settings', 'accessibility settings'],
+                'help': ['help', 'voice commands', 'what can I say'],
+                // Settings modal navigation commands
+                'close-settings': ['close settings', 'close', 'cancel settings', 'exit settings'],
+                'save-settings': ['save settings', 'save', 'save changes', 'apply'],
+                'text-size-normal': ['normal text', 'normal size', 'text normal'],
+                'text-size-large': ['large text', 'large size', 'text large', 'bigger text'],
+                'text-size-xlarge': ['extra large text', 'very large text', 'largest text'],
+                'theme-normal': ['normal theme', 'default theme', 'standard theme'],
+                'theme-dark': ['dark theme', 'dark mode'],
+                'theme-high-contrast': ['high contrast', 'contrast theme'],
+                'enable-audio': ['enable audio', 'turn on audio', 'audio on'],
+                'disable-audio': ['disable audio', 'turn off audio', 'audio off'],
+                'language-english': ['english', 'english language'],
+                'language-welsh': ['welsh', 'cymraeg', 'welsh language']
+            },
+            'cy': {
+                'dashboard': ['dangosfwrdd', 'cartref'],
+                'create-complaint': ['creu cwyn', 'cwyn newydd'],
+                'track-complaints': ['tracio cwynion', 'fy nghwynion', 'gwylio traciwr', 'traciwr'],
+                'admin': ['gweinyddu', 'panel gweinyddu'],
+                'settings': ['gosodiadau', 'dewisiadau'],
+                'help': ['cymorth', 'gorchmynion llais'],
+                'close-settings': ['cau gosodiadau', 'cau'],
+                'save-settings': ['cadw gosodiadau', 'cadw'],
+                'language-english': ['saesneg'],
+                'language-welsh': ['cymraeg']
+            }
+        };
+
+        this.navigationRecognition.onresult = (event) => {
+            const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase().trim();
+            const currentTime = Date.now();
+            
+            // Prevent duplicate/looping commands
+            if (transcript === this.lastTranscript && (currentTime - this.lastCommandTime) < 2000) {
+                console.log('Ignoring duplicate command:', transcript);
+                this.restartRecognitionWithDelay();
+                return;
+            }
+            
+            // Ignore very short or empty transcripts
+            if (transcript.length < 2) {
+                console.log('Ignoring short transcript:', transcript);
+                this.restartRecognitionWithDelay();
+                return;
+            }
+            
+            // Process the command
+            this.lastTranscript = transcript;
+            this.lastCommandTime = currentTime;
+            this.recognitionRetryCount = 0; // Reset retry count on successful recognition
+            
+            console.log('Processing voice command:', transcript);
+            this.handleVoiceNavigationCommand(transcript);
+            
+            // Restart listening with a brief delay to prevent loops
+            this.restartRecognitionWithDelay();
+        };
+
+        this.navigationRecognition.onerror = (event) => {
+            console.warn('Voice navigation error:', event.error);
+            this.recognitionActive = false;
+            
+            if (event.error === 'not-allowed') {
+                // Silent operation - no announcements
+                console.warn('Voice navigation permission denied');
+                // Stop trying completely on permission errors
+                this.isVoiceNavigationActive = false;
+                // Persist the stopped state
+                this.settings.voiceNavigationActive = false;
+                this.saveSettings();
+                // Reset the button state
+                const voiceButton = document.getElementById('voice-nav-btn');
+                if (voiceButton) {
+                    this.stopVoiceNavigation(voiceButton);
+                }
+                return; // Don't retry on permission errors
+            } 
+            
+            // Limit retry attempts to prevent infinite loops
+            if (this.recognitionRetryCount >= this.maxRetryAttempts) {
+                console.warn('Maximum retry attempts reached. Pausing voice recognition.');
+                // Silent operation - no announcements
+                return;
+            }
+            
+            this.recognitionRetryCount++;
+            
+            if (event.error === 'no-speech' || event.error === 'audio-capture') {
+                // Wait longer on no-speech to give user time
+                if (this.isVoiceNavigationActive) {
+                    setTimeout(() => {
+                        this.startVoiceRecognition();
+                    }, 3000); // Increased delay
+                }
+            } else if (event.error === 'network') {
+                // Network errors - wait even longer before retrying
+                if (this.isVoiceNavigationActive) {
+                    setTimeout(() => {
+                        this.startVoiceRecognition();
+                    }, 5000);
+                }
+            } else {
+                // Other errors - moderate delay
+                if (this.isVoiceNavigationActive) {
+                    setTimeout(() => {
+                        this.startVoiceRecognition();
+                    }, 2000);
+                }
+            }
+        };
+
+        this.navigationRecognition.onend = () => {
+            this.recognitionActive = false;
+            
+            // Only restart if voice navigation is still active and we haven't hit retry limit
+            if (this.isVoiceNavigationActive && this.recognitionRetryCount < this.maxRetryAttempts) {
+                this.restartRecognitionWithDelay();
+            }
+        };
+    }
+
+    addVoiceNavigationButton() {
+        // Add voice navigation button to the header (top left)
+        const headerContainer = document.querySelector('header .container .row .col-auto');
+        if (!headerContainer) return;
+
+        // Create voice navigation button in the header
+        const voiceNavButton = document.createElement('button');
+        voiceNavButton.type = 'button';
+        voiceNavButton.className = 'btn btn-outline-light btn-sm';
+        voiceNavButton.id = 'voice-nav-btn';
+        voiceNavButton.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
+        voiceNavButton.setAttribute('aria-label', 'Toggle voice navigation');
+        voiceNavButton.setAttribute('title', 'Click to start voice navigation');
+
+        this.isVoiceNavigationActive = false;
+
+        voiceNavButton.addEventListener('click', () => {
+            if (!this.isVoiceNavigationActive) {
+                this.startVoiceNavigation(voiceNavButton);
+            } else {
+                this.stopVoiceNavigation(voiceNavButton);
+            }
+        });
+
+        // Restore voice navigation state from localStorage
+        if (this.settings.voiceNavigationActive) {
+            // Delay restoration to ensure page is fully loaded
+            setTimeout(() => {
+                this.startVoiceNavigation(voiceNavButton);
+            }, 1000);
+        }
+
+        headerContainer.appendChild(voiceNavButton);
+
+        // Add keyboard shortcut for voice navigation (Ctrl+Shift+V)
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey && event.shiftKey && event.key === 'V') {
+                event.preventDefault();
+                voiceNavButton.click();
+            }
+        });
+
+        // Setup help button functionality
+        const helpButton = document.getElementById('help-btn');
+        if (helpButton) {
+            helpButton.addEventListener('click', () => {
+                this.announceVoiceCommands();
+            });
+        }
+    }
+
+    startVoiceNavigation(button) {
+        if (!this.navigationRecognition) return;
+
+        button.classList.remove('btn-outline-light');
+        button.classList.add('btn-danger');
+        button.innerHTML = '<span aria-hidden="true">⏹️</span> Stop Voice';
+        button.setAttribute('aria-label', 'Stop voice navigation');
+        
+        this.isVoiceNavigationActive = true;
+        
+        // Persist voice navigation state
+        this.settings.voiceNavigationActive = true;
+        this.saveSettings();
+        
+        // Reset loop prevention counters
+        this.recognitionRetryCount = 0;
+        this.lastTranscript = '';
+        this.lastCommandTime = 0;
+        
+        // Start the recognition with better error handling
+        this.startVoiceRecognition();
+        // Remove verbose announcements - just start silently
+        
+        // Show voice help if Settings is visible
+        setTimeout(() => {
+            const settingsVisible = document.getElementById('voice-commands-help');
+            if (settingsVisible) {
+                this.showSettingsVoiceHelp();
+            }
+        }, 1000);
+    }
+
+    stopVoiceNavigation(button) {
+        if (!this.navigationRecognition) return;
+
+        button.classList.remove('btn-danger');
+        button.classList.add('btn-outline-light');
+        button.innerHTML = '<span aria-hidden="true">🎙️</span> Voice Navigation';
+        button.setAttribute('aria-label', 'Start voice navigation');
+        
+        this.isVoiceNavigationActive = false;
+        this.recognitionActive = false;
+        
+        // Persist voice navigation state (off)
+        this.settings.voiceNavigationActive = false;
+        this.saveSettings();
+        
+        // Reset counters
+        this.recognitionRetryCount = 0;
+        this.lastTranscript = '';
+        this.lastCommandTime = 0;
+        
+        // Stop the recognition
+        try {
+            this.navigationRecognition.stop();
+        } catch (e) {
+            // Ignore errors from stopping
+        }
+        
+        // Hide voice help
+        this.hideSettingsVoiceHelp();
+        
+        // Remove verbose announcements - just stop silently
+    }
+
+    startVoiceRecognition() {
+        if (!this.isVoiceNavigationActive || !this.navigationRecognition || this.recognitionActive) return;
+        
+        try {
+            this.recognitionActive = true;
+            this.navigationRecognition.start();
+        } catch (e) {
+            // If recognition is already running, ignore the error
+            this.recognitionActive = false;
+            if (e.name !== 'InvalidStateError') {
+                console.warn('Voice recognition start error:', e);
+            }
+        }
+    }
+
+    restartRecognitionWithDelay() {
+        if (!this.isVoiceNavigationActive) return;
+        
+        // Use progressive delay based on retry count to prevent loops
+        const delay = Math.min(1000 + (this.recognitionRetryCount * 500), 5000);
+        
+        setTimeout(() => {
+            if (this.isVoiceNavigationActive && !this.recognitionActive) {
+                this.startVoiceRecognition();
+            }
+        }, delay);
+    }
+
+    handleVoiceNavigationCommand(transcript) {
+        const commands = this.voiceCommands[this.settings.language] || this.voiceCommands['en'];
+        
+        // Find matching command
+        let matchedAction = null;
+        
+        for (const [action, variations] of Object.entries(commands)) {
+            for (const variation of variations) {
+                if (transcript.includes(variation)) {
+                    matchedAction = action;
+                    break;
+                }
+            }
+            if (matchedAction) break;
+        }
+
+        if (matchedAction) {
+            this.executeVoiceNavigationAction(matchedAction, transcript);
+        } else {
+            // Try partial matches for better UX - but stay silent
+            const partialMatches = this.findPartialMatches(transcript, commands);
+            if (partialMatches.length > 0) {
+                // Silent operation - no announcements
+                console.log(`Partial matches found: ${partialMatches.join(', ')}`);
+            } else {
+                // Silent operation - no announcements
+                console.log('Command not recognized');
+            }
+        }
+    }
+
+    findPartialMatches(transcript, commands) {
+        const matches = [];
+        for (const [action, variations] of Object.entries(commands)) {
+            for (const variation of variations) {
+                if (variation.includes(transcript) || transcript.includes(variation.split(' ')[0])) {
+                    matches.push(variation);
+                    break;
+                }
+            }
+        }
+        return matches.slice(0, 3); // Limit to 3 suggestions
+    }
+
+    executeVoiceNavigationAction(action, originalTranscript) {
+        switch (action) {
+            case 'dashboard':
+                window.location.href = 'index.html';
+                break;
+                
+            case 'create-complaint':
+                window.location.href = 'create-complaint.html';
+                break;
+                
+            case 'track-complaints':
+                window.location.href = 'track-complaints.html';
+                break;
+                
+            case 'admin':
+                window.location.href = 'admin.html';
+                break;
+                
+            case 'settings':
+                const settingsBtn = document.getElementById('settings-btn');
+                if (settingsBtn) {
+                    settingsBtn.click();
+                } else {
+                    // Fallback for settings button in accessibility card
+                    const altSettingsBtn = document.querySelector('button[data-bs-target="#settingsModal"]');
+                    if (altSettingsBtn) {
+                        altSettingsBtn.click();
+                    }
+                }
+                // Show voice help after settings opens
+                setTimeout(() => {
+                    this.showSettingsVoiceHelp();
+                }, 500);
+                break;
+                
+            case 'help':
+                window.location.href = 'help.html';
+                break;
+
+            // Settings modal commands
+            case 'close-settings':
+                this.closeSettingsModal();
+                break;
+                
+            case 'save-settings':
+                this.saveSettingsFromVoice();
+                break;
+                
+            case 'text-size-normal':
+                this.setTextSize('normal');
+                break;
+                
+            case 'text-size-large':
+                this.setTextSize('large');
+                break;
+                
+            case 'text-size-xlarge':
+                this.setTextSize('x-large');
+                break;
+                
+            case 'theme-normal':
+                this.setTheme('normal');
+                break;
+                
+            case 'theme-dark':
+                this.setTheme('dark');
+                break;
+                
+            case 'theme-high-contrast':
+                this.setTheme('high-contrast');
+                break;
+                
+            case 'enable-audio':
+                this.setAudioFeedback(true);
+                break;
+                
+            case 'disable-audio':
+                this.setAudioFeedback(false);
+                break;
+                
+            case 'language-english':
+                this.setLanguage('en');
+                break;
+                
+            case 'language-welsh':
+                this.setLanguage('cy');
+                break;
+                
+            default:
+                // Silent operation - no announcements
+                console.log('Command not recognized');
+        }
+    }
+
+    announceVoiceCommands() {
+        // Silent operation - no announcements
+        // Navigate to help page instead
+        window.location.href = 'help.html';
+    }
+
+    showSettingsVoiceHelp() {
+        const helpSection = document.getElementById('voice-commands-help');
+        if (helpSection && this.isVoiceNavigationActive) {
+            helpSection.style.display = 'block';
+            helpSection.setAttribute('aria-live', 'polite');
+            helpSection.innerHTML = `
+                <h6 class="alert-heading">🎙️ Voice Commands Available (Voice Navigation Active)</h6>
+                <div class="row">
+                    <div class="col-md-6">
+                        <strong>Text Size:</strong><br>
+                        • "Normal Text"<br>
+                        • "Large Text"<br>
+                        • "Extra Large Text"
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Themes:</strong><br>
+                        • "Normal Theme"<br>
+                        • "Dark Theme"<br>
+                        • "High Contrast"
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <strong>Audio:</strong><br>
+                        • "Enable Audio"<br>
+                        • "Disable Audio"
+                    </div>
+                    <div class="col-md-6">
+                        <strong>Actions:</strong><br>
+                        • "Save Settings"<br>
+                        • "Close Settings"
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <small class="text-muted">💡 Just speak these commands naturally - no button clicks needed!</small>
+                </div>
+            `;
+        }
+    }
+
+    hideSettingsVoiceHelp() {
+        const helpSection = document.getElementById('voice-commands-help');
+        if (helpSection) {
+            helpSection.style.display = 'none';
+        }
+    }
+
+    closeSettingsModal() {
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            try {
+                if (typeof bootstrap !== 'undefined') {
+                    const modalInstance = bootstrap.Modal.getInstance(modal);
+                    if (modalInstance) {
+                        modalInstance.hide();
+                    }
+                } else {
+                    // Fallback when Bootstrap JS is not available
+                    modal.style.display = 'none';
+                    modal.classList.remove('show');
+                    document.body.classList.remove('modal-open');
+                    const backdrop = document.querySelector('.modal-backdrop');
+                    if (backdrop) backdrop.remove();
+                }
+                // Silent operation - no announcements
+                this.showTemporaryFeedback('✓ Settings closed');
+                this.hideSettingsVoiceHelp();
+            } catch (error) {
+                console.warn('Error closing settings modal:', error);
+            }
+        }
+    }
+
+    saveSettingsFromVoice() {
+        const saveButton = document.getElementById('save-settings');
+        if (saveButton) {
+            saveButton.click();
+            // Silent operation - no announcements
+            this.showTemporaryFeedback('✓ Settings saved successfully');
+        }
+    }
+
+    setTextSize(size) {
+        const fontSizeSelect = document.getElementById('font-size');
+        if (fontSizeSelect) {
+            fontSizeSelect.value = size;
+            this.settings.fontSize = size;
+            // Silent operation - no announcements
+            this.showTemporaryFeedback(`✓ Text size changed to ${size}`);
+        }
+    }
+
+    setTheme(theme) {
+        const themeSelect = document.getElementById('contrast-theme');
+        if (themeSelect) {
+            themeSelect.value = theme;
+            this.settings.theme = theme;
+            // Silent operation - no announcements
+            this.showTemporaryFeedback(`✓ Theme changed to ${theme.replace('-', ' ')}`);
+        }
+    }
+
+    setAudioFeedback(enabled) {
+        const audioCheckbox = document.getElementById('audio-feedback');
+        if (audioCheckbox) {
+            audioCheckbox.checked = enabled;
+            this.settings.audioFeedback = enabled;
+            // Silent operation - no announcements
+            this.showTemporaryFeedback(`✓ Audio feedback ${enabled ? 'enabled' : 'disabled'}`);
+        }
+    }
+
+    setLanguage(lang) {
+        const languageSelect = document.getElementById('language');
+        if (languageSelect) {
+            languageSelect.value = lang;
+            this.settings.language = lang;
+            // Update voice recognition language
+            if (this.navigationRecognition) {
+                this.navigationRecognition.lang = lang === 'cy' ? 'cy-GB' : 'en-GB';
+            }
+            const langName = lang === 'cy' ? 'Welsh' : 'English';
+            // Silent operation - no announcements
+            this.showTemporaryFeedback(`✓ Language changed to ${langName}`);
+        }
+    }
+
+    showTemporaryFeedback(message) {
+        // Create or update a temporary feedback element
+        let feedbackEl = document.getElementById('voice-feedback');
+        if (!feedbackEl) {
+            feedbackEl = document.createElement('div');
+            feedbackEl.id = 'voice-feedback';
+            feedbackEl.className = 'alert alert-success position-fixed';
+            feedbackEl.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 250px;';
+            document.body.appendChild(feedbackEl);
+        }
+        
+        feedbackEl.innerHTML = `<strong>${message}</strong>`;
+        feedbackEl.style.display = 'block';
+        
+        // Hide after 3 seconds
+        setTimeout(() => {
+            if (feedbackEl && feedbackEl.parentElement) {
+                feedbackEl.style.display = 'none';
+            }
+        }, 3000);
     }
 
     speak(text) {
@@ -396,6 +993,12 @@ class AccessibilityManager {
                 if (settingsBtn) {
                     settingsBtn.click();
                 }
+            }
+
+            // Voice navigation help with Alt+H
+            if (event.altKey && event.key === 'h') {
+                event.preventDefault();
+                this.announceVoiceCommands();
             }
 
             // Escape key handling for modals

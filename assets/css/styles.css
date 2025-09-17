@@ -444,7 +444,7 @@ textarea:focus,
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
 }
 
-/* Voice input indicator */
+/* Voice navigation indicator */
 .voice-indicator {
     position: relative;
     display: inline-block;
@@ -461,6 +461,72 @@ textarea:focus,
     background: var(--danger-color);
     border-radius: 50%;
     animation: pulse 1s infinite;
+}
+
+/* Navigation button styles */
+.navbar-nav .btn-link {
+    border: none;
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.65);
+    transition: color 0.15s ease-in-out;
+}
+
+.navbar-nav .btn-link:hover {
+    color: rgba(0, 0, 0, 0.85);
+}
+
+.navbar-nav .btn-link:focus {
+    outline: var(--focus-outline) !important;
+    outline-offset: 2px !important;
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.25) !important;
+}
+
+.navbar-nav .btn-link.text-danger {
+    color: #dc3545 !important;
+}
+
+/* Voice navigation button styles */
+#voice-nav-btn {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#voice-nav-btn.listening {
+    background-color: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+    animation: voice-pulse 1.5s infinite;
+}
+
+#voice-nav-btn.listening::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-radius: inherit;
+    background: rgba(220, 53, 69, 0.3);
+    animation: voice-ripple 1s infinite;
+}
+
+@keyframes voice-pulse {
+    0%, 100% { 
+        box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+    }
+    50% { 
+        box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+    }
+}
+
+@keyframes voice-ripple {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1.2);
+        opacity: 0;
+    }
 }
 
 @keyframes pulse {

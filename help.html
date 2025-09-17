@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Commands Help - AccessAssist</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+    <!-- Skip Link -->
+    <a href="#main-content" class="visually-hidden-focusable btn btn-primary position-absolute top-0 start-0 m-2" style="z-index: 1050;">
+        Skip to main content
+    </a>
+
+    <!-- Accessibility Status Messages -->
+    <div id="announcements" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Header -->
+    <header class="bg-primary text-white mb-4" role="banner">
+        <div class="container-fluid px-3 py-2 d-flex align-items-center">
+            <button id="voice-nav-btn" class="btn btn-outline-light me-3" aria-label="Toggle voice navigation" title="Click to start voice navigation">
+                <span aria-hidden="true">🎙️</span> Voice Navigation
+            </button>
+            <h1 class="mb-0 flex-grow-1">AccessAssist</h1>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4" aria-label="Main navigation">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.html">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="create-complaint.html">Create Complaint</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="track-complaints.html">Track Complaints</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="admin.html">Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link btn btn-link" id="settings-btn" data-bs-toggle="modal" data-bs-target="#settingsModal" aria-label="Open accessibility settings">
+                            <span aria-hidden="true">⚙️</span> Settings
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" href="help.html" aria-label="Get help with voice commands">
+                            <span aria-hidden="true">❓</span> Help
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main id="main-content" class="container-fluid px-3" role="main">
+        <!-- Voice Commands Help -->
+        <section aria-labelledby="help-heading" class="mb-5">
+            <div class="row">
+                <div class="col-lg-10 mx-auto">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h2 id="help-heading" class="card-title mb-0">
+                                <span aria-hidden="true">🎙️</span> Voice Commands Help
+                            </h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="alert alert-info">
+                                <h4 class="alert-heading">How to Use Voice Navigation</h4>
+                                <p class="mb-2">1. Click the <strong>🎙️ Voice Navigation</strong> button in the top-left corner</p>
+                                <p class="mb-2">2. Allow microphone access when prompted</p>
+                                <p class="mb-2">3. Speak any of the commands below naturally</p>
+                                <p class="mb-0">4. Voice navigation stays active until you click <strong>⏹️ Stop Voice</strong></p>
+                            </div>
+
+                            <!-- Navigation Commands -->
+                            <div class="row">
+                                <div class="col-md-6 mb-4">
+                                    <h3 class="h5 text-primary border-bottom pb-2">
+                                        <span aria-hidden="true">🧭</span> Navigation Commands
+                                    </h3>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Dashboard</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Dashboard"</li>
+                                            <li>• "Go to dashboard"</li>
+                                            <li>• "Home"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Create Complaint</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Create complaint"</li>
+                                            <li>• "New complaint"</li>
+                                            <li>• "Write complaint"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Track Complaints / View Tracker</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Track complaints"</li>
+                                            <li>• "View complaints"</li>
+                                            <li>• "My complaints"</li>
+                                            <li>• "View tracker"</li>
+                                            <li>• "Tracker"</li>
+                                            <li>• "Check tracker"</li>
+                                            <li>• "Open tracker"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Admin</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Admin"</li>
+                                            <li>• "Administration"</li>
+                                            <li>• "Admin panel"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Settings</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Settings"</li>
+                                            <li>• "Open settings"</li>
+                                            <li>• "Preferences"</li>
+                                            <li>• "Accessibility settings"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Help</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Help"</li>
+                                            <li>• "Voice commands"</li>
+                                            <li>• "What can I say"</li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Settings Commands -->
+                                <div class="col-md-6 mb-4">
+                                    <h3 class="h5 text-primary border-bottom pb-2">
+                                        <span aria-hidden="true">⚙️</span> Settings Voice Commands
+                                    </h3>
+                                    <p class="small text-muted mb-3">Use these commands when the Settings modal is open:</p>
+                                    
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Text Size</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Normal text" / "Normal size"</li>
+                                            <li>• "Large text" / "Large size"</li>
+                                            <li>• "Extra large text" / "Largest text"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Color Themes</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Normal theme" / "Default theme"</li>
+                                            <li>• "Dark theme" / "Dark mode"</li>
+                                            <li>• "High contrast"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Audio Settings</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Enable audio" / "Audio on"</li>
+                                            <li>• "Disable audio" / "Audio off"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Language</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "English"</li>
+                                            <li>• "Welsh" / "Cymraeg"</li>
+                                        </ul>
+                                    </div>
+                                    <div class="mb-3">
+                                        <h4 class="h6 fw-bold">Settings Actions</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Save settings" / "Save"</li>
+                                            <li>• "Close settings" / "Close"</li>
+                                            <li>• "Cancel settings" / "Exit settings"</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Welsh Commands -->
+                            <div class="mt-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <span aria-hidden="true">🏴󠁧󠁢󠁷󠁬󠁳󠁿</span> Welsh (Cymraeg) Commands
+                                </h3>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4 class="h6 fw-bold">Navigation</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Dangosfwrdd" (Dashboard)</li>
+                                            <li>• "Creu cwyn" (Create complaint)</li>
+                                            <li>• "Tracio cwynion" (Track complaints)</li>
+                                            <li>• "Gwylio traciwr" (View tracker)</li>
+                                            <li>• "Traciwr" (Tracker)</li>
+                                            <li>• "Gweinyddu" (Admin)</li>
+                                            <li>• "Gosodiadau" (Settings)</li>
+                                            <li>• "Cymorth" (Help)</li>
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h4 class="h6 fw-bold">Settings Actions</h4>
+                                        <ul class="list-unstyled text-muted small">
+                                            <li>• "Cadw gosodiadau" (Save settings)</li>
+                                            <li>• "Cau gosodiadau" (Close settings)</li>
+                                            <li>• "Saesneg" (English)</li>
+                                            <li>• "Cymraeg" (Welsh)</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Keyboard Shortcuts -->
+                            <div class="mt-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <span aria-hidden="true">⌨️</span> Keyboard Shortcuts
+                                </h3>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <kbd>Ctrl+Shift+V</kbd><br>
+                                        <small class="text-muted">Toggle voice navigation</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <kbd>Alt+H</kbd><br>
+                                        <small class="text-muted">Get voice commands help</small>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <kbd>Alt+P</kbd><br>
+                                        <small class="text-muted">Open Settings</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tips -->
+                            <div class="mt-4">
+                                <div class="alert alert-success">
+                                    <h4 class="alert-heading">💡 Tips for Better Voice Recognition</h4>
+                                    <ul class="mb-0">
+                                        <li>Speak clearly and at normal pace</li>
+                                        <li>Use natural language - you don't need to be robotic</li>
+                                        <li>If a command isn't recognized, try a variation from the list above</li>
+                                        <li>Voice navigation persists across page navigation</li>
+                                        <li>You can use voice commands while forms and settings are open</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Troubleshooting -->
+                            <div class="mt-4">
+                                <h3 class="h5 text-primary border-bottom pb-2">
+                                    <span aria-hidden="true">🔧</span> Troubleshooting
+                                </h3>
+                                <div class="accordion" id="troubleshootingAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingOne">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                                                Voice navigation not working?
+                                            </button>
+                                        </h2>
+                                        <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#troubleshootingAccordion">
+                                            <div class="accordion-body">
+                                                <ol>
+                                                    <li>Check that your browser supports voice recognition (Chrome, Edge, Safari)</li>
+                                                    <li>Allow microphone access when prompted</li>
+                                                    <li>Ensure your microphone is not muted</li>
+                                                    <li>Try refreshing the page and clicking Voice Navigation again</li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingTwo">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                                                Commands not being recognized?
+                                            </button>
+                                        </h2>
+                                        <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#troubleshootingAccordion">
+                                            <div class="accordion-body">
+                                                <ul>
+                                                    <li>Speak more slowly and clearly</li>
+                                                    <li>Try different variations of the command</li>
+                                                    <li>Check if background noise is interfering</li>
+                                                    <li>Ensure your microphone is close enough</li>
+                                                    <li>The system supports both English and Welsh commands</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Settings Modal (copied from other pages) -->
+    <div class="modal fade" id="settingsModal" tabindex="-1" aria-labelledby="settingsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title" id="settingsModalLabel">Accessibility Settings</h3>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Voice Commands Help Section (shows when voice navigation is active) -->
+                    <div id="voice-commands-help" class="alert alert-info" style="display: none;" role="region" aria-live="polite">
+                        <!-- Content populated by JavaScript -->
+                    </div>
+
+                    <form id="accessibility-form">
+                        <!-- Visual Settings -->
+                        <fieldset class="mb-4">
+                            <legend class="h5">Visual Settings</legend>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="font-size" class="form-label">Text Size</label>
+                                        <select class="form-select" id="font-size" name="fontSize">
+                                            <option value="normal">Normal</option>
+                                            <option value="large">Large</option>
+                                            <option value="xlarge">Extra Large</option>
+                                        </select>
+                                        <div class="form-text">Adjust text size for better readability</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="color-theme" class="form-label">Color Theme</label>
+                                        <select class="form-select" id="color-theme" name="colorTheme">
+                                            <option value="normal">Normal</option>
+                                            <option value="dark">Dark</option>
+                                            <option value="high-contrast">High Contrast</option>
+                                        </select>
+                                        <div class="form-text">Choose a theme that works best for you</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Motion Settings -->
+                        <fieldset class="mb-4">
+                            <legend class="h5">Motion Settings</legend>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="reduced-motion" name="reducedMotion">
+                                <label class="form-check-label" for="reduced-motion">
+                                    Reduce animations and motion
+                                </label>
+                                <div class="form-text">Disable animations that might cause discomfort</div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Audio Settings -->
+                        <fieldset class="mb-4">
+                            <legend class="h5">Audio Settings</legend>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="audio-feedback" name="audioFeedback">
+                                <label class="form-check-label" for="audio-feedback">
+                                    Enable audio feedback
+                                </label>
+                                <div class="form-text">Hear confirmations and status updates</div>
+                            </div>
+                        </fieldset>
+
+                        <!-- Language Settings -->
+                        <fieldset class="mb-4">
+                            <legend class="h5">Language Settings</legend>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="language" class="form-label">Language</label>
+                                        <select class="form-select" id="language" name="language">
+                                            <option value="en">English</option>
+                                            <option value="cy">Welsh (Cymraeg)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="language-level" class="form-label">Language Level</label>
+                                        <select class="form-select" id="language-level" name="languageLevel">
+                                            <option value="simple">Simple</option>
+                                            <option value="standard">Standard</option>
+                                        </select>
+                                        <div class="form-text">Choose complexity level for instructions</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </fieldset>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="save-settings">Save Settings</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-light mt-5 py-4" role="contentinfo">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <p class="mb-2">&copy; 2024 AccessAssist. Designed for accessibility.</p>
+                    <nav aria-label="Footer navigation">
+                        <a href="help.html" class="text-decoration-none me-3">Help</a>
+                        <a href="#" class="text-decoration-none me-3">Privacy</a>
+                        <a href="accessibility-statement.html" class="text-decoration-none">Accessibility Statement</a>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/accessibility.js"></script>
+    <script>
+        // Initialize accessibility manager when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            window.accessibilityManager = new AccessibilityManager();
+        });
+    </script>
+</body>
+</html>

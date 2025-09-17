@@ -34,13 +34,11 @@
     <header role="banner" class="bg-primary text-white py-3">
         <div class="container">
             <div class="row align-items-center">
-                <div class="col-md-8">
-                    <h1 class="h3 mb-0">AccessAssist</h1>
+                <div class="col-auto">
+                    <!-- Voice Navigation button will be added here by JavaScript -->
                 </div>
-                <div class="col-md-4 text-md-end">
-                    <button type="button" class="btn btn-outline-light btn-sm" id="settings-btn" aria-label="Open accessibility settings" data-bs-toggle="modal" data-bs-target="#settingsModal">
-                        <span aria-hidden="true">⚙️</span> Settings
-                    </button>
+                <div class="col">
+                    <h1 class="h3 mb-0">AccessAssist</h1>
                 </div>
             </div>
         </div>
@@ -65,6 +63,16 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="admin.html">Admin</a>
+                    </li>
+                    <li class="nav-item">
+                        <button type="button" class="nav-link btn btn-link p-0" id="settings-btn" aria-label="Open accessibility settings" data-bs-toggle="modal" data-bs-target="#settingsModal">
+                            <span aria-hidden="true">⚙️</span> Settings
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="help.html" aria-label="Get help with voice commands">
+                            <span aria-hidden="true">❓</span> Help
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -153,6 +161,37 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
+                    <!-- Voice Commands Help Section -->
+                    <div id="voice-commands-help" class="alert alert-info mb-4" style="display: none;">
+                        <h6 class="alert-heading">🎙️ Voice Commands Available</h6>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Text Size:</strong><br>
+                                • "Normal Text"<br>
+                                • "Large Text"<br>
+                                • "Extra Large Text"
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Themes:</strong><br>
+                                • "Normal Theme"<br>
+                                • "Dark Theme"<br>
+                                • "High Contrast"
+                            </div>
+                        </div>
+                        <div class="row mt-2">
+                            <div class="col-md-6">
+                                <strong>Audio:</strong><br>
+                                • "Enable Audio"<br>
+                                • "Disable Audio"
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Actions:</strong><br>
+                                • "Save Settings"<br>
+                                • "Close Settings"
+                            </div>
+                        </div>
+                    </div>
+                    
                     <form id="accessibility-settings">
                         <fieldset class="mb-4">
                             <legend class="h6">Visual Settings</legend>
@@ -241,7 +280,7 @@
                 </div>
                 <div class="col-md-6 text-md-end">
                     <nav aria-label="Footer navigation">
-                        <a href="#" class="text-decoration-none me-3">Help</a>
+                        <a href="help.html" class="text-decoration-none me-3">Help</a>
                         <a href="#" class="text-decoration-none me-3">Privacy</a>
                         <a href="accessibility-statement.html" class="text-decoration-none">Accessibility Statement</a>
                     </nav>
